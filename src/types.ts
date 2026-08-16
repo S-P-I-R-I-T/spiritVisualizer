@@ -79,6 +79,7 @@ export type SequenceActionItem = {
   id: string;
   name: string;
   code: string;
+  durationMs?: number;
   locked?: boolean;
 };
 

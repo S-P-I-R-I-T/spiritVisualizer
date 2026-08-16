@@ -3,6 +3,7 @@
   import { snapToGrid, showGrid, gridSize } from "../../stores";
   import ControlPointsSection from "./ControlPointsSection.svelte";
   import HeadingControls from "./HeadingControls.svelte";
+  import SnippetChips from "./SnippetChips.svelte";
 
   export let line: Line;
   export let idx: number;
@@ -53,6 +54,38 @@
   function removeLineAction(idx: number) {
     line.actions = (line.actions || []).filter((_, i) => i !== idx);
     lines = [...lines];
+  }
+
+  let actionTextareas: HTMLTextAreaElement[] = [];
+
+  function insertSnippetToAction(ai: number, snippetCode: string) {
+    const action = (line.actions || [])[ai];
+    if (!action) return;
+
+    const el = actionTextareas[ai];
+    const current = action.code || "";
+    const start = el?.selectionStart ?? current.length;
+    const end = el?.selectionEnd ?? current.length;
+
+    const before = current.slice(0, start);
+    const after = current.slice(end);
+
+    let insert = snippetCode;
+    if (before && !before.endsWith("\n")) insert = "\n" + insert;
+    if (after && !after.startsWith("\n")) insert = insert + "\n";
+
+    const newCode = before + insert + after;
+    line.actions = (line.actions || []).map((a, i) =>
+      i === ai ? { ...a, code: newCode } : a,
+    );
+    lines = [...lines];
+
+    requestAnimationFrame(() => {
+      if (!el) return;
+      const pos = (before + insert).length;
+      el.setSelectionRange(pos, pos);
+      el.focus();
+    });
   }
 </script>
 
@@ -494,6 +527,7 @@
               />
 
               <textarea
+                bind:this={actionTextareas[ai]}
                 bind:value={action.code}
                 disabled={line.locked}
                 rows="2"
@@ -503,6 +537,12 @@
                 on:blur={() => recordChange?.()}
                 class="w-full px-2 py-1 text-xs rounded-md bg-white dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-600 focus:outline-none focus:ring-1 focus:ring-fuchsia-500 font-mono resize-y"
               />
+
+              {#if !line.locked}
+                <div class="mb-1">
+                  <SnippetChips onInsert={(code) => insertSnippetToAction(ai, code)} />
+                </div>
+              {/if}
 
               <div class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
                 경로 {idx + 1}, 이동 액션 {ai + 1}

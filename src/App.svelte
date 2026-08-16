@@ -18,6 +18,7 @@
     dualPathMode,
     secondFilePath,
     activePaths,
+    rainbowPaths,
   } from "./stores";
   import Two from "two.js";
   import type { Path } from "two.js/src/path";
@@ -61,7 +62,7 @@
   } from "./config";
   import { loadSettings, saveSettings } from "./utils/settingsPersistence";
   import * as browserFileStore from "./utils/browserFileStore";
-  import { onMount, tick } from "svelte";
+  import { onMount, onDestroy, tick } from "svelte";
   import { debounce } from "lodash";
   import { createHistory, type AppState } from "./utils/history";
   // Browser-only build: file operations use the browser file store and
@@ -1517,6 +1518,110 @@
     // Sync UI state with controller
     playing = animationController.isPlaying();
   }
+
+  // Rainbow path color animation
+  let rainbowFrame: number | null = null;
+  let rainbowStart = 0;
+
+  function hueToRgb(hue: number): string {
+    const h = ((hue % 360) + 360) % 360;
+    const c = 1;
+    const x = 1 - Math.abs(((h / 60) % 2) - 1);
+    let r = 0,
+      g = 0,
+      b = 0;
+    if (h < 60) {
+      r = c;
+      g = x;
+      b = 0;
+    } else if (h < 120) {
+      r = x;
+      g = c;
+      b = 0;
+    } else if (h < 180) {
+      r = 0;
+      g = c;
+      b = x;
+    } else if (h < 240) {
+      r = 0;
+      g = x;
+      b = c;
+    } else if (h < 300) {
+      r = x;
+      g = 0;
+      b = c;
+    } else {
+      r = c;
+      g = 0;
+      b = x;
+    }
+    const toHex = (v: number) =>
+      Math.round(v * 255)
+        .toString(16)
+        .padStart(2, "0");
+    return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+  }
+
+  function getPathElements(): any[] {
+    const result: any[] = [];
+    if (!two || !two.scene) return result;
+    two.scene.children.forEach((child: any) => {
+      const id = child && child.id ? String(child.id) : "";
+      if (
+        /^line-\d+$/.test(id) ||
+        /^second-line-\d+$/.test(id) ||
+        /^additional-path-\d+-line-\d+$/.test(id)
+      ) {
+        result.push(child);
+      }
+    });
+    return result;
+  }
+
+  function startRainbow() {
+    if (rainbowFrame !== null || !two) return;
+    rainbowStart = performance.now();
+    const tick = (now: number) => {
+      if (!$rainbowPaths || !two) {
+        rainbowFrame = null;
+        return;
+      }
+      const t = (now - rainbowStart) / 1000;
+      getPathElements().forEach((elem: any, i) => {
+        if (elem.__originalStroke === undefined) {
+          elem.__originalStroke = elem.stroke;
+        }
+        elem.stroke = hueToRgb(t * 120 + i * 25);
+      });
+      two.update();
+      rainbowFrame = requestAnimationFrame(tick);
+    };
+    rainbowFrame = requestAnimationFrame(tick);
+  }
+
+  function stopRainbow() {
+    if (rainbowFrame !== null) {
+      cancelAnimationFrame(rainbowFrame);
+      rainbowFrame = null;
+    }
+    getPathElements().forEach((elem: any) => {
+      if (elem.__originalStroke !== undefined) {
+        elem.stroke = elem.__originalStroke;
+        delete elem.__originalStroke;
+      }
+    });
+    if (two) two.update();
+  }
+
+  $: if ($rainbowPaths && two) {
+    startRainbow();
+  } else {
+    stopRainbow();
+  }
+
+  onDestroy(() => {
+    stopRainbow();
+  });
 
   // Save Function
   // Save the current project into the browser-backed store (or download)

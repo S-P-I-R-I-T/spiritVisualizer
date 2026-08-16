@@ -20,6 +20,7 @@ export const AVAILABLE_FIELD_MAPS = [
   { value: "decode.webp", label: "DECODE Field (2025-2026)" },
   { value: "intothedeep.webp", label: "Into The Deep Field (2024-2025)" },
   { value: "centerstage.webp", label: "Centerstage (2023-2024)" },
+  { value: "ftc_field.png", label: "오프시즌 빈 경기장" },
   { value: "custom", label: "Custom Field (Upload)" },
 ];
 

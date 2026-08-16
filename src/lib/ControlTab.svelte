@@ -10,6 +10,7 @@
   } from "../types";
   import _ from "lodash";
   import { getRandomColor } from "../utils";
+  import { rainbowPaths } from "../stores";
   import ObstaclesSection from "./components/ObstaclesSection.svelte";
   import RobotPositionDisplay from "./components/RobotPositionDisplay.svelte";
   import StartingPointSection from "./components/StartingPointSection.svelte";
@@ -640,6 +641,7 @@
       id: makeId(),
       name: "Action",
       code: "",
+      durationMs: 0,
       locked: false,
     } as SequenceItem;
     sequence = [...sequence, action];
@@ -652,6 +654,7 @@
       id: makeId(),
       name: "Action",
       code: "",
+      durationMs: 0,
       locked: false,
     });
     sequence = newSeq;
@@ -857,6 +860,21 @@
               title="Path chain color"
             />
             <span class="text-xs text-neutral-500 dark:text-neutral-400">경로 색상</span>
+
+            <button
+              on:click={() => rainbowPaths.update((v) => !v)}
+              class:bg-gradient-to-r={$rainbowPaths}
+              class:from-red-500={$rainbowPaths}
+              class:via-yellow-400={$rainbowPaths}
+              class:via-green-500={$rainbowPaths}
+              class:via-blue-500={$rainbowPaths}
+              class:to-purple-500={$rainbowPaths}
+              class:text-white={$rainbowPaths}
+              class="px-2 py-1 text-xs rounded border border-neutral-300 dark:border-neutral-600 font-semibold transition-colors"
+              title={$rainbowPaths ? "💀" : "🌈"}
+            >
+              🌈
+            </button>
           </div>
         </div>
       {/if}
@@ -900,6 +918,7 @@
           <ActionRow
             name={getAction(item).name}
             code={getAction(item).code}
+            durationMs={getAction(item).durationMs ?? 0}
             locked={getAction(item).locked ?? false}
             onToggleLock={() => {
               const newSeq = [...sequence];
@@ -910,12 +929,13 @@
               sequence = newSeq;
               recordChange?.();
             }}
-            onChange={(newName, newCode) => {
+            onChange={(newName, newCode, newDurationMs) => {
               const newSeq = [...sequence];
               newSeq[sIdx] = {
                 ...getAction(item),
                 name: newName,
                 code: newCode,
+                durationMs: newDurationMs,
               };
               sequence = newSeq;
             }}

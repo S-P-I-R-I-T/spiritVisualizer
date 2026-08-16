@@ -1,11 +1,16 @@
 <script lang="ts">
-  import { snippetStore, snippetManagerOpen } from "../../utils/snippets";
+  import SnippetChips from "./SnippetChips.svelte";
 
   export let name: string;
   export let code: string;
+  export let durationMs: number = 0;
   export let locked: boolean = false;
   export let onToggleLock: () => void;
-  export let onChange: (newName: string, newCode: string) => void;
+  export let onChange: (
+    newName: string,
+    newCode: string,
+    newDurationMs: number,
+  ) => void;
   export let onRemove: () => void;
   export let onInsertAfter: () => void;
   export let onAddPathAfter: () => void;
@@ -18,12 +23,19 @@
 
   function handleNameChange(e: Event) {
     const target = e.currentTarget as HTMLInputElement;
-    if (!locked) onChange(target?.value ?? "", code);
+    if (!locked) onChange(target?.value ?? "", code, durationMs);
   }
 
   function handleCodeChange(e: Event) {
     const target = e.currentTarget as HTMLTextAreaElement;
-    if (!locked) onChange(name, target?.value ?? "");
+    if (!locked) onChange(name, target?.value ?? "", durationMs);
+  }
+
+  function handleDurationChange(e: Event) {
+    const target = e.currentTarget as HTMLInputElement;
+    const v = Number(target?.value ?? 0);
+    if (!locked)
+      onChange(name, code, Math.max(0, Number.isFinite(v) ? v : 0));
   }
 
   function insertSnippet(snippetCode: string) {
@@ -42,7 +54,7 @@
 
     const newCode = before + insert + after;
     code = newCode;
-    onChange(name, newCode);
+    onChange(name, newCode, durationMs);
 
     // Restore cursor after the inserted snippet.
     requestAnimationFrame(() => {
@@ -71,6 +83,17 @@
         on:change={handleNameChange}
         disabled={locked}
       />
+      <input
+        class="pl-1.5 rounded-md bg-neutral-50 dark:bg-neutral-950 dark:border-neutral-700 border-[0.5px] focus:outline-none w-28"
+        type="number"
+        min="0"
+        step="100"
+        bind:value={durationMs}
+        on:change={handleDurationChange}
+        disabled={locked}
+        title="실행 시간 (ms)"
+      />
+      <span class="text-xs text-neutral-500 dark:text-neutral-400">ms</span>
     </div>
 
     <div class="flex items-center gap-2">
@@ -247,28 +270,6 @@
   />
 
   {#if !locked}
-    <div class="flex flex-row flex-wrap items-center gap-1">
-      <span class="text-[10px] uppercase tracking-wide text-neutral-400 dark:text-neutral-500"
-        >스니펫</span
-      >
-      {#each $snippetStore as snippet (snippet.id)}
-        <button
-          type="button"
-          title={snippet.code}
-          on:click|stopPropagation={() => insertSnippet(snippet.code)}
-          class="px-1.5 py-0.5 text-[10px] rounded bg-purple-100 text-purple-700 hover:bg-purple-200 dark:bg-purple-900/50 dark:text-purple-200 dark:hover:bg-purple-800/60 border border-purple-200 dark:border-purple-700/50 transition-colors"
-        >
-          {snippet.label}
-        </button>
-      {/each}
-      <button
-        type="button"
-        title="스니펫 관리"
-        on:click|stopPropagation={() => snippetManagerOpen.set(true)}
-        class="px-1.5 py-0.5 text-[10px] rounded border border-dashed border-neutral-300 dark:border-neutral-600 text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
-      >
-        + 관리
-      </button>
-    </div>
+    <SnippetChips onInsert={insertSnippet} />
   {/if}
 </div>

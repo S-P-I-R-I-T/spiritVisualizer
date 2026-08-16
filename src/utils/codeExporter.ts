@@ -104,7 +104,13 @@ type FullStep =
       stateName: string;
       endHeading: number;
     }
-  | { kind: "action"; name: string; code: string; stateName: string }
+  | {
+      kind: "action";
+      name: string;
+      code: string;
+      durationSeconds: number;
+      stateName: string;
+    }
   | { kind: "wait"; name: string; durationSeconds: number; stateName: string };
 
 /**
@@ -113,8 +119,8 @@ type FullStep =
  * Each step in the sequence becomes a PathState:
  *   - path   -> DRIVE_<start>_<end> state that calls follower.followPath()
  *               and advances once the follower is no longer busy,
- *   - action -> ACTION_<name> state that runs the user-supplied code and
- *               advances immediately,
+ *   - action -> ACTION_<name> state that runs the user-supplied code once and
+ *               advances after the configured duration,
  *   - wait   -> WAIT_<name> state that advances after pathTimer reaches
  *               the configured duration.
  *
@@ -188,6 +194,7 @@ function generateFullAutonomous(
         kind: "action",
         name: item.name || baseName,
         code: item.code || "",
+        durationSeconds: (Number(item.durationMs) || 0) / 1000,
         stateName,
       });
     } else if (item.kind === "wait") {
@@ -297,11 +304,16 @@ function generateFullAutonomous(
     if (s.kind === "action") {
       const codeLines = (s.code || "")
         .split("\n")
-        .map((line) => "                " + line)
+        .map((line) => "                    " + line)
         .join("\n");
       return `case ${s.stateName}:
+                if (!pathStarted) {
 ${codeLines}
-                setPathState(PathState.${nextState});
+                    pathStarted = true;
+                }
+                if (pathTimer.getElapsedTimeSeconds() >= ${fmtNumber(s.durationSeconds)}) {
+                    setPathState(PathState.${nextState});
+                }
                 break;`;
     }
 

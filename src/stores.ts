@@ -24,6 +24,9 @@ export const currentFilePath = writable<string | null>(null);
 export const isUnsaved = writable(false);
 export const snapToGrid = writable(true);
 
+// Path color effects
+export const rainbowPaths = writable(false);
+
 // Multiple paths visualization stores
 export const activePaths = writable<string[]>([]);
 export const dualPathMode = writable(false); // Deprecated - kept for backwards compatibility
