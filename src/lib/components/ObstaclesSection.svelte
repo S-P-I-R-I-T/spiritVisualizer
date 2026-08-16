@@ -4,8 +4,8 @@
   import { snapToGrid, showGrid, gridSize } from "../../stores";
 
   const colorChoices = [
-    { label: "Red", color: "#dc2626", fill: "#ff6b6b" },
-    { label: "Blue", color: "#2563eb", fill: "#60a5fa" },
+    { label: "빨강", color: "#dc2626", fill: "#ff6b6b" },
+    { label: "파랑", color: "#2563eb", fill: "#60a5fa" },
   ];
 
   function setPresetColor(shape: Shape, color: string) {
@@ -20,7 +20,7 @@
   export let collapsedObstacles: boolean[];
 
   $: snapToGridTitle =
-    $snapToGrid && $showGrid ? `Snapping to ${$gridSize} grid` : "No snapping";
+    $snapToGrid && $showGrid ? `그리드에 스냅 중: ${$gridSize}` : "스냅 없음";
 
   function toggleObstacle(index: number) {
     collapsedObstacles[index] = !collapsedObstacles[index];
@@ -39,8 +39,8 @@
       on:click={toggleAllObstacles}
       class="flex items-center gap-2 font-semibold px-2 py-1 rounded transition-colors duration-250"
       title="{collapsedObstacles.every((c) => c)
-        ? 'Expand all'
-        : 'Collapse all'} obstacles"
+        ? '모두 펼치기'
+        : '모두 접기'} obstacles"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -58,7 +58,7 @@
           d="m8.25 4.5 7.5 7.5-7.5 7.5"
         />
       </svg>
-      Obstacles ({shapes.length})
+      장애물 ({shapes.length})
     </button>
   </div>
 
@@ -72,8 +72,8 @@
             on:click={() => toggleObstacle(shapeIdx)}
             class="flex items-center gap-2 font-medium text-sm px-2 py-1 rounded transition-colors duration-250"
             title="{collapsedObstacles[shapeIdx]
-              ? 'Expand'
-              : 'Collapse'} obstacle"
+              ? '펼치기'
+              : '접기'} obstacle"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -91,12 +91,12 @@
                 d="m8.25 4.5 7.5 7.5-7.5 7.5"
               />
             </svg>
-            Obstacle {shapeIdx + 1}
+            장애물 {shapeIdx + 1}
           </button>
 
           <input
             bind:value={shape.name}
-            placeholder="Obstacle {shapeIdx + 1}"
+            placeholder="장애물 {shapeIdx + 1}"
             class="pl-1.5 rounded-md bg-neutral-100 dark:bg-neutral-950 dark:border-neutral-700 border-[0.5px] focus:outline-none text-sm font-medium"
           />
           <select
@@ -112,7 +112,7 @@
 
         <div class="flex flex-row gap-1">
           <button
-            title="Add Vertex"
+            title="꼭짓점 추가"
             on:click={() => {
               shape.vertices = [...shape.vertices, { x: 50, y: 50 }];
             }}
@@ -133,7 +133,7 @@
           </button>
           {#if shapes.length > 0}
             <button
-              title="Remove Shape"
+              title="도형 제거"
               on:click={() => {
                 shapes.splice(shapeIdx, 1);
                 shapes = shapes;
@@ -185,13 +185,13 @@
               title={snapToGridTitle}
             />
             {#if $snapToGrid && $showGrid}
-              <span class="text-xs text-green-500" title="Snapping enabled"
+              <span class="text-xs text-green-500" title="스냅 활성화됨"
                 >✓</span
               >
             {/if}
             {#if shape.vertices.length > 3}
               <button
-                title="Remove Vertex"
+                title="꼭짓점 제거"
                 on:click={() => {
                   shape.vertices.splice(vertexIdx, 1);
                   shape.vertices = shape.vertices;
@@ -240,6 +240,6 @@
         d="M12 4.5v15m7.5-7.5h-15"
       />
     </svg>
-    <p>Add Obstacle</p>
+    <p>장애물 추가</p>
   </button>
 </div>

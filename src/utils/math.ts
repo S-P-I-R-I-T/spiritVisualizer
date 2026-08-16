@@ -20,18 +20,6 @@ export function easeInOutQuad(x: number): number {
   return x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2;
 }
 
-export function getMousePos(evt: MouseEvent, canvas: any) {
-  let rect = canvas.getBoundingClientRect();
-  return {
-    x:
-      ((evt.clientX - rect.left) / (rect.right - rect.left)) *
-      canvas.width.baseVal.value,
-    y:
-      ((evt.clientY - rect.top) / (rect.bottom - rect.top)) *
-      canvas.height.baseVal.value,
-  };
-}
-
 export function transformAngle(angle: number) {
   return ((angle + 180) % 360) - 180;
 }
@@ -146,20 +134,4 @@ export function getLineEndHeading(
       : transformAngle(angle);
   }
   return 0;
-}
-
-export function vh(percent: number) {
-  var h = Math.max(
-    document.documentElement.clientHeight,
-    window.innerHeight || 0,
-  );
-  return (percent * h) / 100;
-}
-
-export function vw(percent: number) {
-  var w = Math.max(
-    document.documentElement.clientWidth,
-    window.innerWidth || 0,
-  );
-  return (percent * w) / 100;
 }

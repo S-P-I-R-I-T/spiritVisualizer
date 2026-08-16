@@ -4,7 +4,7 @@
 
   export let isOpen = false;
   export let progress = 0;
-  export let statusMessage = "Processing...";
+  export let statusMessage = "처리 중...";
   export let onCancel: () => void = () => {};
 
   $: progressPercentage = Math.round(progress * 100);
@@ -27,7 +27,7 @@
         id="progress-title"
         class="text-xl font-semibold text-neutral-900 dark:text-neutral-100 mb-4"
       >
-        Exporting GIF
+        GIF 내보내는 중
       </h2>
 
       <div class="mb-4">
@@ -54,7 +54,7 @@
           on:click={onCancel}
           class="px-4 py-2 rounded-lg text-neutral-700 dark:text-neutral-300 bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600 transition-colors font-medium"
         >
-          Cancel
+          취소
         </button>
       </div>
     </div>

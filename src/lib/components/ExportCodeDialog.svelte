@@ -42,6 +42,20 @@
     }
   }
 
+  function deriveClassName(): string {
+    if ($currentFilePath) {
+      const base = $currentFilePath
+        .split(/[\\/]/)
+        .pop()
+        ?.replace(/\.pp$/, "")
+        .replace(/[^a-zA-Z0-9]/g, "");
+      if (base) {
+        return /^[0-9]/.test(base) ? `Auto${base}` : base;
+      }
+    }
+    return "PedroAutonomous";
+  }
+
   export async function openWithFormat(
     format: "java" | "points" | "sequential",
   ) {
@@ -54,6 +68,8 @@
           lines,
           exportMode,
           pathChains,
+          sequence,
+          deriveClassName(),
         );
         currentLanguage = java;
       } else if (format === "points") {
@@ -83,7 +99,7 @@
     } catch (error) {
       console.error("Export failed:", error);
       exportedCode =
-        "// Error generating code. Please check the console for details.";
+        "// 코드 생성 오류. 자세한 내용은 콘솔을 확인하세요.";
       currentLanguage = plaintext;
       isOpen = true;
     }
@@ -102,14 +118,21 @@
       } catch (error) {
         console.error("Refresh failed:", error);
         exportedCode =
-          "// Error refreshing code. Please check the console for details.";
+          "// 코드 새로고침 오류. 자세한 내용은 콘솔을 확인하세요.";
       }
     }
   }
 
   async function handleExportModeChange() {
     if (exportFormat === "java") {
-      exportedCode = await generateJavaCode(startPoint, lines, exportMode, pathChains);
+      exportedCode = await generateJavaCode(
+        startPoint,
+        lines,
+        exportMode,
+        pathChains,
+        sequence,
+        deriveClassName(),
+      );
     }
   }
 </script>
@@ -136,11 +159,11 @@
       <div class="flex flex-row justify-between items-center w-full">
         <p class="text-sm font-light text-neutral-700 dark:text-neutral-400">
           {#if exportFormat === "java"}
-            Here is the generated Java code for this path:
+            이 경로에 대해 생성된 Java 코드입니다:
           {:else if exportFormat === "points"}
-            Here is the points array for this path:
+            이 경로에 대한 포인트 배열입니다:
           {:else if exportFormat === "sequential"}
-            Here is the Sequential Command code for this path:
+            이 경로에 대한 순차 명령 코드입니다:
           {/if}
         </p>
         <div class="flex items-center gap-2">
@@ -148,7 +171,7 @@
             <label
               for="export-mode"
               class="text-sm font-light text-neutral-700 dark:text-neutral-400"
-              >Export Mode:</label
+              >내보내기 모드:</label
             >
             <select
               id="export-mode"
@@ -156,16 +179,16 @@
               on:change={handleExportModeChange}
               class="px-2 py-1 text-sm rounded-md bg-neutral-100 dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-600 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
             >
-              <option value="coordinates">Coordinates Only</option>
-              <option value="class">Class Only</option>
-              <option value="full">Full Code</option>
+              <option value="coordinates">좌표만</option>
+              <option value="class">클래스만</option>
+              <option value="full">전체 코드</option>
             </select>
           {:else if exportFormat === "sequential"}
             <div class="flex items-center gap-2">
               <label
                 for="class-name"
                 class="text-sm font-light text-neutral-700 dark:text-neutral-400"
-                >Class Name:</label
+                >클래스 이름:</label
               >
               <input
                 id="class-name"
@@ -206,7 +229,7 @@
           class="w-full"
         />
         <button
-          title={copied ? "Copied" : "Copy code to clipboard"}
+          title={copied ? "복사됨" : "코드를 클립보드에 복사"}
           on:click={async () => {
             try {
               await navigator.clipboard.writeText(exportedCode || "");

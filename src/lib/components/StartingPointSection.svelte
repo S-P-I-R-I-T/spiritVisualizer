@@ -7,11 +7,11 @@
 <div class="flex flex-col w-full justify-start items-start gap-0.5">
   <div class="flex items-center justify-between w-full">
     <div class="font-semibold flex items-center gap-2">
-      Starting Point
+      시작 위치
       <button
         title={startPoint.locked
-          ? "Unlock Starting Point"
-          : "Lock Starting Point"}
+          ? "시작위치 잠금 해제"
+          : "시작위치 잠금"}
         on:click|stopPropagation={() => {
           startPoint.locked = !startPoint.locked;
           startPoint = { ...startPoint }; // Force reactivity

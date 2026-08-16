@@ -13,7 +13,6 @@
     dualPathMode,
     activePaths,
   } from "../stores";
-  import { getRandomColor } from "../utils";
   import {
     getDefaultStartPoint,
     getDefaultLines,
@@ -130,7 +129,7 @@
   async function exportFieldAsImage() {
     exportMenuOpen = false;
     if (!twoElement) {
-      alert("Canvas not ready. Please try again.");
+      alert("캔버스가 준비되지 않았습니다. 다시 시도해 주세요.");
       return;
     }
 
@@ -157,12 +156,12 @@
           link.click();
           URL.revokeObjectURL(downloadUrl);
         } else {
-          alert("Failed to create image blob.");
+          alert("이미지 blob 생성에 실패했습니다.");
         }
       });
     } catch (error) {
       console.error("Export error:", error);
-      alert("Failed to export field as image: " + (error instanceof Error ? error.message : String(error)));
+      alert("필드를 이미지로 내보내기 실패: " + (error instanceof Error ? error.message : String(error)));
     }
   }
 
@@ -180,23 +179,23 @@
     // Check if there's unsaved work
     const hasChanges = $isUnsaved || lines.length > 1 || shapes.length > 0;
 
-    let message = "Are you sure you want to reset the path?\n\n";
+    let message = "경로를 초기화하시겠습니까?\n\n";
 
     if (hasChanges) {
       if ($currentFilePath) {
-        message += `This will reset "${$currentFilePath.split(/[\\/]/).pop()}" to the default path.`;
+        message += `"${$currentFilePath.split(/[\\/]/).pop()}" 을(를) 기본 경로로 초기화합니다.`;
       } else {
-        message += "This will reset your current work to the default path.";
+        message += "현재 작업을 기본 경로로 초기화합니다.";
       }
 
       if ($isUnsaved) {
-        message += "\n\n⚠ WARNING: You have unsaved changes that will be lost!";
+        message += "\n\n⚠ 경고: 저장되지 않은 변경 사항이 손실됩니다!";
       }
     } else {
-      message += "This will reset to the default starting path.";
+      message += "기본 시작 경로로 초기화합니다.";
     }
 
-    message += "\n\nClick OK to reset, or Cancel to keep your current path.";
+    message += "\n\n초기화하려면 확인을, 유지하려면 취소를 누르세요.";
 
     if (confirm(message)) {
       resetPath();
@@ -304,7 +303,7 @@
     <div class="flex flex-row items-center gap-2">
       <!-- File manager button -->
       <button
-        title="File Manager"
+        title="파일 관리자"
         on:click={() => {
           exportDialogOpen = false;
           fileManagerOpen = true;
@@ -326,13 +325,13 @@
         </svg>
       </button>
 
-      <span>Pedro Pathing Visualizer</span>
+      <span>Pedro Pathing Visualizer <span class="text-xs">❤️ S.P.I.R.I.T 25323 25324</span></span>
       <!-- GitHub Repo Link (moved next to title) -->
       <a
         target="_blank"
         rel="noreferrer"
-        title="GitHub Repo"
-        href="https://github.com/Pedro-Pathing/Visualizer"
+        title="GitHub 저장소"
+        href="https://github.com/S-P-I-R-I-T/spiritVisualizer"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -344,6 +343,7 @@
           ></path>
         </svg>
       </a>
+
       {#if $currentFilePath}
         <span class="text-neutral-400 font-light text-sm mx-2">/</span>
         <span
@@ -351,7 +351,7 @@
         >
           {$currentFilePath.split(/[\\/]/).pop()}
           {#if $isUnsaved}
-            <span class="text-amber-500 font-bold ml-1" title="Unsaved changes"
+            <span class="text-amber-500 font-bold ml-1" title="저장되지 않은 변경 사항"
               >*</span
             >
           {/if}
@@ -379,7 +379,7 @@
 
       <button
         class="relative px-3 py-1.5 text-sm font-semibold text-neutral-700 dark:text-neutral-200 bg-neutral-200/80 dark:bg-neutral-800/80 border border-neutral-300 dark:border-neutral-700 rounded-full shadow-sm hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-        title="Optimize all paths"
+        title="모든 경로 최적화"
         on:click={optimizeAllLines}
         disabled={optimizingAll}
         style="box-shadow: 0 0 8px rgba(255,255,255,0.2)"
@@ -387,13 +387,13 @@
         on:mousemove={handleOptimizeMove}
         on:mouseleave={handleOptimizeLeave}
       >
-        {optimizingAll ? "Optimizing All…" : "Optimize All"}
+        {optimizingAll ? "전체 최적화 중…" : "전체 최적화"}
       </button>
 
       <!-- Undo / Redo -->
       <div class="flex items-center gap-2">
         <button
-          title="Undo"
+          title="실행 취소"
           on:click={undoAction}
           disabled={!canUndo}
           class:opacity-50={!canUndo}
@@ -415,7 +415,7 @@
           </svg>
         </button>
         <button
-          title="Redo"
+          title="다시 실행"
           on:click={redoAction}
           disabled={!canRedo}
           class:opacity-50={!canRedo}
@@ -448,7 +448,7 @@
     <!-- Snap to grid toggle -->
     {#if $showGrid}
       <button
-        title={$snapToGrid ? "Disable Snap to Grid" : "Enable Snap to Grid"}
+        title={$snapToGrid ? "그리드 스냅 끄기" : "그리드 스냅 켜기"}
         on:click={() => snapToGrid.update((v) => !v)}
         class:text-green-500={$snapToGrid && $showGrid}
         class:text-gray-400={!$showGrid}
@@ -484,7 +484,7 @@
 
     <!-- Grid toggle -->
     <button
-      title={$showGrid ? `Grid: ${selectedGridSize}" (click to cycle)` : "Toggle Grid"}
+      title={$showGrid ? `그리드: ${selectedGridSize}" (클릭하여 순환)` : "그리드 토글"}
       on:click={cycleGridSize}
       class:text-blue-500={$showGrid}
       class="relative"
@@ -515,7 +515,7 @@
 
     <!-- Ruler toggle -->
     <button
-      title="Toggle Ruler"
+      title="자 토글"
       on:click={() => showRuler.update((v) => !v)}
       class:text-blue-500={$showRuler}
     >
@@ -544,8 +544,8 @@
     {#if $showProtractor}
       <button
         title={$protractorLockToRobot
-          ? "Unlock Protractor from Robot"
-          : "Lock Protractor to Robot"}
+          ? "각도기를 로봇에서 잠금 해제"
+          : "각도기를 로봇에 잠금"}
         on:click={() => protractorLockToRobot.update((v) => !v)}
         class:text-amber-500={$protractorLockToRobot}
       >
@@ -586,7 +586,7 @@
     <!-- Protractor toggle -->
 
     <button
-      title="Toggle Protractor"
+      title="각도기 토글"
       on:click={() => showProtractor.update((v) => !v)}
       class:text-blue-500={$showProtractor}
     >
@@ -614,7 +614,7 @@
 
     <!-- Multiple Paths Toggle -->
     <button
-      title="Manage Multiple Paths Visualization"
+      title="다중 경로 시각화 관리"
       on:click={() => (multiplePathsDialogOpen = true)}
       class="relative px-3 py-1.5 rounded-lg font-medium text-sm transition-all duration-200 shadow-sm hover:shadow-md"
       class:bg-purple-500={$activePaths.length > 0}
@@ -642,7 +642,7 @@
             d="M9 4.5v15m6-15v15m-10.875 0h15.75c.621 0 1.125-.504 1.125-1.125V5.625c0-.621-.504-1.125-1.125-1.125H4.125C3.504 4.5 3 5.004 3 5.625v12.75c0 .621.504 1.125 1.125 1.125z"
           />
         </svg>
-        <span>Multiple Paths</span>
+        <span>다중 경로</span>
         {#if $activePaths.length > 0}
           <span class="ml-1 px-1.5 py-0.5 bg-white/20 text-xs font-bold rounded">{$activePaths.length}</span>
         {/if}
@@ -666,7 +666,7 @@
       />
       <label
         for="file-input"
-        title="Load trajectory from a .pp file"
+        title=".pp 파일에서 경로 불러오기"
         class="cursor-pointer"
       >
         <svg
@@ -689,11 +689,11 @@
       <div class="relative">
         <button
           bind:this={saveButtonRef}
-          title="Save options"
+          title="저장 옵션"
           on:click={() => (saveDropdownOpen = !saveDropdownOpen)}
           class="flex items-center gap-1 px-2 py-1 rounded transition-colors duration-250"
           aria-expanded={saveDropdownOpen}
-          aria-label="Save options"
+          aria-label="저장 옵션"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -741,7 +741,7 @@
               }}
               class="flex items-center gap-3 w-full text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-200 transition-colors duration-250"
               role="menuitem"
-              title="Save to current file"
+              title="현재 파일에 저장"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -758,12 +758,12 @@
                 />
               </svg>
               <div class="flex flex-col">
-                <span class="font-medium">Save</span>
+                <span class="font-medium">저장</span>
                 <span class="text-xs text-neutral-500 dark:text-neutral-400">
                   {#if $currentFilePath}
-                    Overwrite the current project file in app storage ({$currentFilePath.split(/[\/]/).pop()})
+                    앱 저장소의 현재 프로젝트 파일 덮어쓰기 ({$currentFilePath.split(/[\\/]/).pop()})
                   {:else}
-                    No project file selected — this will download the path as a new file to your computer
+                    선택된 프로젝트 파일 없음 — 경로를 새 파일로 컴퓨터에 다운로드합니다
                   {/if}
                 </span>
               </div>
@@ -777,7 +777,7 @@
               }}
               class="flex items-center gap-3 w-full text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-200 transition-colors duration-250"
               role="menuitem"
-              title="Save as new file"
+              title="새 파일로 저장"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -794,9 +794,9 @@
                 />
               </svg>
               <div class="flex flex-col">
-                <span class="font-medium">Save As</span>
+                <span class="font-medium">다른 이름으로 저장</span>
                 <span class="text-xs text-neutral-500 dark:text-neutral-400">
-                  Create a new project file (choose a filename) or download a new .pp to your computer
+                  새 프로젝트 파일 생성(파일명 선택) 또는 새 .pp를 컴퓨터에 다운로드
                 </span>
               </div>
             </button>
@@ -806,7 +806,7 @@
 
       <div class="relative">
         <button
-          title="Export path"
+          title="경로 내보내기"
           on:click={() => (exportMenuOpen = !exportMenuOpen)}
           class="flex items-center gap-1"
         >
@@ -848,27 +848,27 @@
               on:click={() => handleExport("java")}
               class="block w-full text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-200 transition-colors duration-250"
             >
-              Java Code
+              Java 코드
             </button>
             <button
               on:click={() => handleExport("points")}
               class="block w-full text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-200 transition-colors duration-250"
             >
-              Points Array
+              포인트 배열
             </button>
             {#if showSequentialExport}
               <button
                 on:click={() => handleExport("sequential")}
                 class="block w-full text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-200 transition-colors duration-250"
               >
-                Sequential Command
+                순차 명령
               </button>
             {/if}
             <button
               on:click={exportFieldAsImage}
               class="block w-full text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors duration-250"
             >
-              Field as Image
+              필드를 이미지로
             </button>
             <button
               on:click={async () => {
@@ -877,7 +877,7 @@
               }}
               class="block w-full text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors duration-250"
             >
-              Path Animation as GIF
+              경로 애니메이션 GIF
             </button>
           </div>
         {/if}
@@ -892,7 +892,7 @@
     <div class="flex items-center gap-3">
       <!-- Delete/Reset path -->
       <button
-        title="Delete/Reset path"
+        title="경로 삭제/초기화"
         on:click={handleResetPathWithConfirmation}
         class="relative group"
       >
@@ -915,12 +915,12 @@
         <div
           class="absolute hidden group-hover:block bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-neutral-900 text-white text-xs rounded text-center whitespace-normal max-w-[12rem] shadow-md"
         >
-          Reset path to default (with confirmation)
+          경로를 기본값으로 초기화 (확인 필요)
         </div>
       </button>
 
       <!-- Settings button -->
-      <button title="Open Settings" on:click={() => (settingsOpen = true)}>
+      <button title="설정 열기" on:click={() => (settingsOpen = true)}>
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="24"

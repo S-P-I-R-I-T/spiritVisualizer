@@ -18,7 +18,7 @@
   class="w-full bg-neutral-50 dark:bg-neutral-900 rounded-lg p-3 flex flex-row justify-start items-center gap-3 shadow-lg"
 >
   <button
-    title="Play/Pause"
+    title="재생/일시정지"
     on:click={() => {
       if (playing) {
         pause();
@@ -62,7 +62,7 @@
 
   <!-- Loop Toggle Button -->
   <button
-    title={loopAnimation ? "Disable Loop" : "Enable Loop"}
+    title={loopAnimation ? "반복 끄기" : "반복 켜기"}
     on:click={() => {
       loopAnimation = !loopAnimation;
     }}

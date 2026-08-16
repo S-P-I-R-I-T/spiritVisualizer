@@ -28,7 +28,7 @@
       files = allFiles.filter((f) => f.name.endsWith(".pp"));
     } catch (error) {
       console.error("Error loading files:", error);
-      errorMessage = "Failed to load files";
+      errorMessage = "파일 불러오기 실패";
     } finally {
       loading = false;
     }
@@ -40,7 +40,7 @@
       selectedPaths = selectedPaths.filter((p) => p !== filePath);
     } else {
       if (selectedPaths.length >= MAX_PATHS) {
-        alert(`Maximum of ${MAX_PATHS} paths can be selected at once.`);
+        alert(`한 번에 최대 ${MAX_PATHS}개의 경로를 선택할 수 있습니다.`);
         return;
       }
       selectedPaths = [...selectedPaths, filePath];
@@ -88,11 +88,11 @@
         id="multipaths-title"
         class="text-2xl font-semibold text-neutral-900 dark:text-neutral-100 mb-2"
       >
-        Multiple Paths Visualization
+        다중 경로 시각화
       </h2>
 
       <p class="text-sm text-neutral-600 dark:text-neutral-400 mb-4">
-        Select up to {MAX_PATHS} paths to visualize simultaneously.
+        동시에 시각화할 경로를 최대 {MAX_PATHS}개 선택하세요.
       </p>
 
       <!-- Performance Warning -->
@@ -116,11 +116,11 @@
           </svg>
           <div class="text-sm">
             <div class="font-semibold text-amber-800 dark:text-amber-300">
-              Performance Warning
+              성능 경고
             </div>
             <div class="text-amber-700 dark:text-amber-400">
-              Visualizing {selectedPaths.length} paths may impact performance. Consider
-              reducing the number of paths if you experience lag.
+              {selectedPaths.length}개의 경로를 표시하면 성능에 영향을 줄 수
+              있습니다. 렉이 발생하면 경로 수를 줄이세요.
             </div>
           </div>
         </div>
@@ -131,7 +131,7 @@
         class="flex items-center justify-between mb-4 p-3 bg-neutral-100 dark:bg-neutral-700/50 rounded-lg"
       >
         <div class="text-sm font-medium text-neutral-700 dark:text-neutral-300">
-          Selected: <span class="text-lg font-bold text-purple-600 dark:text-purple-400"
+          선택됨: <span class="text-lg font-bold text-purple-600 dark:text-purple-400"
             >{selectedPaths.length}</span
           >
           / {MAX_PATHS}
@@ -141,7 +141,7 @@
             on:click={clearAll}
             class="text-sm text-neutral-600 dark:text-neutral-400 hover:text-red-600 dark:hover:text-red-400 transition-colors underline"
           >
-            Clear All
+            전체 해제
           </button>
         {/if}
       </div>
@@ -150,7 +150,7 @@
       <div class="flex-1 overflow-y-auto mb-4 border border-neutral-200 dark:border-neutral-700 rounded-lg">
         {#if loading}
           <div class="p-8 text-center text-neutral-500 dark:text-neutral-400">
-            Loading files...
+            파일 불러오는 중...
           </div>
         {:else if errorMessage}
           <div class="p-8 text-center text-red-500">
@@ -158,7 +158,7 @@
           </div>
         {:else if files.length === 0}
           <div class="p-8 text-center text-neutral-500 dark:text-neutral-400">
-            No .pp files found. Create some paths first!
+            .pp 파일을 찾을 수 없습니다. 먼저 경로를 만드세요!
           </div>
         {:else}
           <div class="divide-y divide-neutral-200 dark:divide-neutral-700">
@@ -205,7 +205,7 @@
                   <div
                     class="flex-shrink-0 px-2 py-1 bg-purple-600 text-white text-xs font-semibold rounded"
                   >
-                    Path {selectionIndex + 1}
+                    경로 {selectionIndex + 1}
                   </div>
                 {/if}
               </button>
@@ -220,13 +220,13 @@
           on:click={handleClose}
           class="px-4 py-2 rounded-lg text-neutral-700 dark:text-neutral-300 bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600 transition-colors font-medium"
         >
-          Cancel
+          취소
         </button>
         <button
           on:click={handleApply}
           class="px-4 py-2 rounded-lg text-white bg-purple-600 hover:bg-purple-700 transition-colors font-medium"
         >
-          Apply ({selectedPaths.length} path{selectedPaths.length !== 1 ? "s" : ""})
+          적용 (경로 {selectedPaths.length}개)
         </button>
       </div>
     </div>

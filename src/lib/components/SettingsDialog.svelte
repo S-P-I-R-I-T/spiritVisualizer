@@ -30,7 +30,7 @@
   async function handleReset() {
     if (
       confirm(
-        "Are you sure you want to reset all settings to defaults? This cannot be undone.",
+        "모든 설정을 기본값으로 초기화하시겠습니까? 되돌릴 수 없습니다.",
       )
     ) {
       const defaultSettings = await resetSettings();
@@ -63,7 +63,7 @@
         if (typeof reader.result === "string") {
           resolve(reader.result);
         } else {
-          reject(new Error("Failed to convert image"));
+          reject(new Error("이미지 변환 실패"));
         }
       };
       reader.onerror = reject;
@@ -83,7 +83,7 @@
           settings.customFieldImage = base64;
         } catch (error) {
           console.error("Failed to load custom field image:", error);
-          alert("Failed to load image. Please try a different file.");
+          alert("이미지를 불러오지 못했습니다. 다른 파일을 시도해 주세요.");
         }
       }
     }
@@ -108,14 +108,14 @@
           id="settings-title"
           class="text-xl font-semibold text-neutral-900 dark:text-white"
         >
-          Settings
+          설정
         </h2>
         <span class="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
           Pedro Pathing Visualizer
         </span>
         <button
           on:click={() => (isOpen = false)}
-          aria-label="Close settings"
+          aria-label="설정 닫기"
           class="p-1 rounded transition-colors duration-250"
         >
           <svg
@@ -155,10 +155,10 @@
             />
           </svg>
           <div class="text-sm text-amber-800 dark:text-amber-200">
-            <div class="font-medium mb-1">UI Settings Only</div>
+            <div class="font-medium mb-1">UI 설정 전용</div>
             <div class="text-xs opacity-90">
-              These settings only affect the visualizer/UI. Ensure your robot
-              code matches these values for accurate simulation.
+              이 설정은 비주얼라이저/UI에만 영향을 줍니다. 정확한 시뮬레이션을 위해
+              로봇 코드가 이 값과 일치하는지 확인하세요.
             </div>
           </div>
         </div>
@@ -189,7 +189,7 @@
                   d="M9 17.25v1.007a3 3 0 0 1-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0 1 15 18.257V17.25m6-12V15a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 15V5.25A2.25 2.25 0 0 1 5.25 3h13.5A2.25 2.25 0 0 1 21 5.25Z"
                 />
               </svg>
-              <span class="font-semibold">Robot Configuration</span>
+              <span class="font-semibold">로봇 설정</span>
             </div>
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -217,9 +217,9 @@
                   for="robot-width"
                   class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
                 >
-                  Robot Width (in)
+                  로봇 폭 (in)
                   <div class="text-xs text-neutral-500 dark:text-neutral-400">
-                    Width of the robot base
+                    로봇 본체의 폭
                   </div>
                 </label>
                 <input
@@ -240,9 +240,9 @@
                   for="robot-height"
                   class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
                 >
-                  Robot Height (in)
+                  로봇 높이 (in)
                   <div class="text-xs text-neutral-500 dark:text-neutral-400">
-                    Height of the robot base
+                    로봇 본체의 높이
                   </div>
                 </label>
                 <input
@@ -263,9 +263,9 @@
                   for="safety-margin"
                   class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
                 >
-                  Safety Margin (in)
+                  안전 여유 (in)
                   <div class="text-xs text-neutral-500 dark:text-neutral-400">
-                    Buffer around obstacles
+                    장애물 주변 버퍼
                   </div>
                 </label>
                 <input
@@ -286,9 +286,9 @@
                 <div
                   class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
                 >
-                  Robot Image
+                  로봇 이미지
                   <div class="text-xs text-neutral-500 dark:text-neutral-400">
-                    Upload a custom image for your robot
+                    로봇용 커스텀 이미지 업로드
                   </div>
                 </div>
                 <div
@@ -300,7 +300,7 @@
                   >
                     <img
                       src={settings.robotImage || "/robot.png"}
-                      alt="Robot Preview"
+                      alt="로봇 미리보기"
                       class="w-full h-full object-contain"
                       on:error={(e) => {
                         console.error(
@@ -317,7 +317,7 @@
                           settings = { ...settings }; // Force reactivity
                         }}
                         class="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
-                        title="Remove custom image"
+                        title="커스텀 이미지 제거"
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -346,11 +346,11 @@
                         {#if settings.robotImage === "/JefferyThePotato.png"}
                           <span class="inline-flex items-center gap-1">
                             <span>🥔</span>
-                            <span>Jeffery the Potato Active!</span>
+                            <span>제프리 감자 활성화!</span>
                             <span>🥔</span>
                           </span>
                         {:else}
-                          Custom Image Loaded
+                          커스텀 이미지 로드됨
                         {/if}
                       </p>
                       <p
@@ -358,13 +358,13 @@
                         title={settings.robotImage.substring(0, 100)}
                       >
                         {#if settings.robotImage === "/JefferyThePotato.png"}
-                          Best. Robot. Ever. 🥔
+                          최고의 로봇. 🥔
                         {:else}
                           {settings.robotImage.substring(0, 30)}...
                         {/if}
                       </p>
                     {:else}
-                      <p>Using default robot image</p>
+                      <p>기본 로봇 이미지 사용 중</p>
                     {/if}
                   </div>
 
@@ -389,11 +389,11 @@
                             const successMsg = document.createElement("div");
                             successMsg.className =
                               "fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded-md shadow-lg";
-                            successMsg.textContent = "Robot image updated!";
+                            successMsg.textContent = "로봇 이미지가 업데이트되었습니다!";
                             document.body.appendChild(successMsg);
                             setTimeout(() => successMsg.remove(), 3000);
                           } catch (error) {
-                            alert("Error loading image: " + error.message);
+                            alert("이미지 로드 오류: " + error.message);
                           }
                         }
                       }}
@@ -417,7 +417,7 @@
                           d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
                         />
                       </svg>
-                      Upload Robot Image
+                      로봇 이미지 업로드
                     </button>
 
                     <button
@@ -429,7 +429,7 @@
                       disabled={!settings.robotImage ||
                         settings.robotImage === "/robot.png"}
                     >
-                      Use Default Image
+                      기본 이미지 사용
                     </button>
 
                     <button
@@ -439,14 +439,14 @@
                       }}
                       class="potato-tooltip px-4 py-2 text-sm bg-amber-700 hover:bg-amber-800 text-white rounded-md transition-colors flex items-center justify-center gap-2 group relative overflow-hidden"
                       style="background-image: linear-gradient(45deg, #a16207 25%, #ca8a04 25%, #ca8a04 50%, #a16207 50%, #a16207 75%, #ca8a04 75%, #ca8a04 100%); background-size: 20px 20px;"
-                      title="Transform your robot into Jeffery the Potato!"
+                      title="로봇을 제프리 감자로 변신!"
                     >
                       <!-- Potato emoji with animation -->
                       <span
                         class="text-lg group-hover:scale-110 transition-transform duration-300"
                         >🥔</span
                       >
-                      <span class="font-semibold">Use Potato Robot</span>
+                      <span class="font-semibold">감자 로봇 사용</span>
                       <span class="text-lg opacity-80">🥔</span>
 
                       <!-- Fun hover effect -->
@@ -459,8 +459,8 @@
                   <div
                     class="text-xs text-neutral-500 dark:text-neutral-400 text-center mt-1"
                   >
-                    <p>Supported: PNG, JPG, GIF</p>
-                    <p>Recommended: &lt; 1MB, transparent background</p>
+                    <p>지원: PNG, JPG, GIF</p>
+                    <p>권장: 1MB 미만, 투명 배경</p>
                   </div>
                 </div>
               </div>
@@ -476,11 +476,11 @@
                   <span
                     class="text-sm font-medium text-neutral-700 dark:text-neutral-300"
                   >
-                    Show Heading Arrow
+                    헤딩 화살표 표시
                   </span>
                 </label>
                 <div class="text-xs text-neutral-500 dark:text-neutral-400 ml-6 mt-1">
-                  Display an arrow showing the robot's current heading direction
+                  로봇의 현재 헤딩 방향을 표시하는 화살표를 표시합니다
                 </div>
               </div>
             </div>
@@ -510,7 +510,7 @@
                   d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"
                 />
               </svg>
-              <span class="font-semibold">Motion Parameters</span>
+              <span class="font-semibold">모션 파라미터</span>
             </div>
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -540,7 +540,7 @@
                     for="x-velocity"
                     class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
                   >
-                    X Velocity (in/s)
+                    X 속도 (인치/초)
                   </label>
                   <input
                     id="x-velocity"
@@ -559,7 +559,7 @@
                     for="y-velocity"
                     class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
                   >
-                    Y Velocity (in/s)
+                    Y 속도 (인치/초)
                   </label>
                   <input
                     id="y-velocity"
@@ -580,9 +580,9 @@
                   for="angular-velocity"
                   class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
                 >
-                  Angular Velocity (π rad/s)
+                  각속도 (π rad/s)
                   <div class="text-xs text-neutral-500 dark:text-neutral-400">
-                    Multiplier of π radians per second
+                    초당 π 라디안의 배수
                   </div>
                 </label>
                 <input
@@ -602,7 +602,7 @@
                   for="max-velocity"
                   class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
                 >
-                  Max Velocity (in/s)
+                  최대 속도 (인치/초)
                 </label>
                 <input
                   id="max-velocity"
@@ -623,7 +623,7 @@
                     for="max-acceleration"
                     class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
                   >
-                    Max Acceleration (in/s²)
+                    최대 가속도 (인치/s²)
                   </label>
                   <input
                     id="max-acceleration"
@@ -642,7 +642,7 @@
                     for="max-deceleration"
                     class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
                   >
-                    Max Deceleration (in/s²)
+                    최대 감속도 (인치/s²)
                   </label>
                   <input
                     id="max-deceleration"
@@ -663,9 +663,9 @@
                   for="friction-coefficient"
                   class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
                 >
-                  Friction Coefficient
+                  마찰 계수
                   <div class="text-xs text-neutral-500 dark:text-neutral-400">
-                    Higher values = more resistance
+                    값이 클수록 저항이 커집니다
                   </div>
                 </label>
                 <input
@@ -706,7 +706,7 @@
                   d="M9.53 16.122a3 3 0 0 0-5.78 1.128 2.25 2.25 0 0 1-2.4 2.245 4.5 4.5 0 0 0 8.4-2.245c0-.399-.078-.78-.22-1.128Zm0 0a15.998 15.998 0 0 0 3.388-1.62m-5.043-.025a15.994 15.994 0 0 1 1.622-3.395m3.42 3.42a15.995 15.995 0 0 0 4.764-4.648l3.876-5.814a1.151 1.151 0 0 0-1.597-1.597L14.146 6.32a15.996 15.996 0 0 0-4.649 4.763m3.42 3.42a6.776 6.776 0 0 0-3.42-3.42"
                 />
               </svg>
-              <span class="font-semibold">Interface Settings</span>
+              <span class="font-semibold">인터페이스 설정</span>
             </div>
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -734,9 +734,9 @@
                   for="theme-select"
                   class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
                 >
-                  Theme
+                  테마
                   <div class="text-xs text-neutral-500 dark:text-neutral-400">
-                    Interface color scheme
+                    인터페이스 색상 구성
                   </div>
                 </label>
                 <select
@@ -744,21 +744,21 @@
                   bind:value={settings.theme}
                   class="w-full px-3 py-2 rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="auto">Auto (System Preference)</option>
-                  <option value="light">Light Mode</option>
-                  <option value="dark">Dark Mode</option>
+                  <option value="auto">자동 (시스템 설정)</option>
+                  <option value="light">라이트 모드</option>
+                  <option value="dark">다크 모드</option>
                 </select>
                 <div
                   class="mt-2 text-xs text-neutral-500 dark:text-neutral-400"
                 >
                   {#if settings.theme === "auto"}
                     {#if window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches}
-                      Currently using: Dark (from system)
+                      현재 사용 중: 다크 (시스템)
                     {:else}
-                      Currently using: Light (from system)
+                      현재 사용 중: 라이트 (시스템)
                     {/if}
                   {:else}
-                    Currently using: {settings.theme}
+                    현재 사용 중: {settings.theme}
                   {/if}
                 </div>
               </div>
@@ -770,9 +770,9 @@
                   for="field-map-select"
                   class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
                 >
-                  Field Map
+                  필드 맵
                   <div class="text-xs text-neutral-500 dark:text-neutral-400">
-                    Select the competition field
+                    대회 필드 선택
                   </div>
                 </label>
                 <select
@@ -792,9 +792,9 @@
                       for="custom-field-upload"
                       class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2"
                     >
-                      Upload Custom Field Image
+                      커스텀 필드 이미지 업로드
                       <div class="text-xs text-neutral-500 dark:text-neutral-400">
-                        Accepts PNG, JPG, WEBP (recommended: 144x144 inches aspect ratio)
+                        PNG, JPG, WEBP 지원 (권장: 144x144 인치 종횡비)
                       </div>
                     </label>
                     <input
@@ -809,7 +809,7 @@
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width={1.5} stroke="currentColor" class="size-5">
                           <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                         </svg>
-                        Custom field image loaded
+                        커스텀 필드 이미지 로드됨
                       </div>
                     {/if}
                   </div>
@@ -842,7 +842,7 @@
                   d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 0 0 4.486-6.336l-3.276 3.277a3.004 3.004 0 0 1-2.25-2.25l3.276-3.276a4.5 4.5 0 0 0-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437 1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008Z"
                 />
               </svg>
-              <span class="font-semibold">Advanced Settings</span>
+              <span class="font-semibold">고급 설정</span>
             </div>
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -895,10 +895,10 @@
                   <div
                     class="text-sm font-medium text-neutral-700 dark:text-neutral-300 block mb-1"
                   >
-                    Robot Onion Layers
+                    로봇 양파 레이어
                   </div>
                   <div class="text-xs text-neutral-500 dark:text-neutral-400">
-                    Show robot body at intervals along the path
+                    경로를 따라 일정 간격으로 로봇 본체 표시
                   </div>
                 </div>
 
@@ -908,7 +908,7 @@
                     type="checkbox"
                     bind:checked={settings.showOnionLayers}
                     class="w-5 h-5 rounded border-neutral-300 dark:border-neutral-600 text-indigo-500 focus:ring-2 focus:ring-indigo-500 cursor-pointer"
-                    title="Enable robot onion layer visualization"
+                    title="로봇 양파 레이어 시각화 활성화"
                   />
 
                   <label class="flex items-center gap-2 text-xs text-neutral-600 dark:text-neutral-400">
@@ -916,9 +916,9 @@
                       type="checkbox"
                       bind:checked={settings.onionNextPointOnly}
                       class="w-4 h-4 rounded border-neutral-300 dark:border-neutral-600 text-indigo-500 focus:ring-2 focus:ring-indigo-500 cursor-pointer"
-                      title="Limit onion layers to the next point (UI-only for now)"
+                      title="양파 레이어를 다음 지점으로 제한 (현재 UI 전용)"
                     />
-                    <span>Next Point Only</span>
+                    <span>다음 지점만</span>
                   </label>
                 </div>
               </div>
@@ -931,7 +931,7 @@
                   <div
                     class="text-sm font-medium text-neutral-700 dark:text-neutral-300 block mb-2"
                   >
-                    Onion Layer Spacing
+                    양파 레이어 간격
                   </div>
                   <div class="flex items-center gap-2">
                     <input
@@ -941,7 +941,7 @@
                       step="1"
                       bind:value={settings.onionLayerSpacing}
                       class="flex-1 h-2 bg-neutral-200 dark:bg-neutral-700 rounded-lg appearance-none cursor-pointer accent-indigo-500"
-                      title="Distance between each robot body trace"
+                      title="각 로봇 본체 자취 사이의 거리"
                     />
                     <span
                       class="text-sm font-medium text-neutral-700 dark:text-neutral-300 min-w-[3rem] text-right"
@@ -952,12 +952,12 @@
                   <div
                     class="text-xs text-neutral-500 dark:text-neutral-400 mt-1"
                   >
-                    Distance in inches between each robot body trace
+                    각 로봇 본체 자취 사이의 거리 (인치)
                   </div>
                   <div class="mt-3">
                     <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
-                      Onion Layer Color
-                      <div class="text-xs text-neutral-500 dark:text-neutral-400">Color used to draw onion-layer colliders</div>
+                      양파 레이어 색상
+                      <div class="text-xs text-neutral-500 dark:text-neutral-400">양파 레이어 콜라이더를 그리는 데 사용되는 색상</div>
                     </label>
                     <div class="flex items-center gap-3">
                       <input type="color" bind:value={settings.onionColor} class="w-10 h-10 p-0 border rounded" />
@@ -975,13 +975,13 @@
                   <div
                     class="text-sm font-medium text-neutral-700 dark:text-neutral-300 block mb-3"
                   >
-                    Heading Arrow Settings
+                    헤딩 화살표 설정
                   </div>
                   
                   <!-- Arrow Length -->
                   <div class="mb-3">
                     <label class="block text-sm text-neutral-700 dark:text-neutral-300 mb-1">
-                      Arrow Length
+                      화살표 길이
                     </label>
                     <div class="flex items-center gap-2">
                       <input
@@ -1003,7 +1003,7 @@
                   <!-- Arrow Color -->
                   <div class="mb-3">
                     <label class="block text-sm text-neutral-700 dark:text-neutral-300 mb-1">
-                      Arrow Color
+                      화살표 색상
                     </label>
                     <div class="flex items-center gap-3">
                       <input
@@ -1022,7 +1022,7 @@
                   <!-- Arrow Thickness -->
                   <div>
                     <label class="block text-sm text-neutral-700 dark:text-neutral-300 mb-1">
-                      Arrow Thickness
+                      화살표 두께
                     </label>
                     <div class="flex items-center gap-2">
                       <input
@@ -1049,7 +1049,7 @@
                 class="p-3 bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700"
               >
                 <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-                  Path Opacity
+                  경로 불투명도
                 </label>
                 <div class="flex items-center gap-2">
                   <input
@@ -1065,7 +1065,7 @@
                   </span>
                 </div>
                 <div class="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
-                  Controls visibility of path lines
+                  경로 선의 표시 정도를 조절합니다
                 </div>
               </div>
 
@@ -1086,11 +1086,11 @@
                 />
               </svg>
               <p class="text-sm">
-                More advanced settings will be added here in future updates
+                더 많은 고급 설정이 향후 업데이트에서 여기에 추가됩니다
               </p>
               <p class="text-xs mt-1">
-                Path optimization, collision detection, export options, and so,
-                so much more!
+                경로 최적화, 충돌 감지, 내보내기 옵션 등 훨씬 더 많은 기능이
+                준비 중입니다!
               </p>
             </div>
           {/if}
@@ -1104,7 +1104,7 @@
         <button
           on:click={handleReset}
           class="px-4 py-2 text-sm bg-red-500 hover:bg-red-600 text-white rounded-md transition-colors flex items-center gap-2"
-          title="Reset all settings to default values"
+          title="모든 설정을 기본값으로 초기화"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -1120,14 +1120,14 @@
               d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"
             />
           </svg>
-          Reset All
+          전체 초기화
         </button>
 
         <button
           on:click={() => (isOpen = false)}
           class="px-4 py-2 text-sm bg-blue-500 hover:bg-blue-600 text-white rounded-md transition-colors"
         >
-          Close
+          닫기
         </button>
       </div>
     </div>

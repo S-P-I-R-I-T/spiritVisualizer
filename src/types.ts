@@ -40,6 +40,11 @@ export interface WaitSegment {
   position?: "before" | "after";
 }
 
+export interface LineAction {
+  name: string;
+  code: string;
+}
+
 export interface Line {
   id?: string;
   endPoint: Point;
@@ -47,6 +52,7 @@ export interface Line {
   color: string;
   name?: string;
   locked?: boolean;
+  actions?: LineAction[];
   waitBefore?: WaitSegment;
   waitAfter?: WaitSegment;
   waitBeforeMs?: number;
@@ -68,7 +74,18 @@ export type SequenceWaitItem = {
   locked?: boolean;
 };
 
-export type SequenceItem = SequencePathItem | SequenceWaitItem;
+export type SequenceActionItem = {
+  kind: "action";
+  id: string;
+  name: string;
+  code: string;
+  locked?: boolean;
+};
+
+export type SequenceItem =
+  | SequencePathItem
+  | SequenceWaitItem
+  | SequenceActionItem;
 
 export interface PathChain {
   id: string;

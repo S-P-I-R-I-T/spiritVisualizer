@@ -7,6 +7,7 @@
   export let onRemove: () => void;
   export let onInsertAfter: () => void;
   export let onAddPathAfter: () => void;
+  export let onAddActionAfter: () => void;
   export let onMoveUp: () => void;
   export let onMoveDown: () => void;
   export let canMoveUp: boolean = true;
@@ -30,12 +31,12 @@
   <div class="flex items-center gap-2">
     <span
       class="px-1.5 py-0.5 text-xs rounded bg-amber-200 text-amber-800 dark:bg-amber-900 dark:text-amber-200"
-      >Wait</span
+      >대기</span
     >
     <input
       class="pl-1.5 rounded-md bg-neutral-50 dark:bg-neutral-950 dark:border-neutral-700 border-[0.5px] focus:outline-none w-40"
       type="text"
-      placeholder="Name"
+      placeholder="이름"
       bind:value={name}
       on:change={handleNameChange}
       disabled={locked}
@@ -55,7 +56,7 @@
   <div class="flex items-center gap-2">
     <!-- Lock/Unlock Button -->
     <button
-      title={locked ? "Unlock Wait" : "Lock Wait"}
+      title={locked ? "대기 잠금 해제" : "대기 잠금"}
       on:click|stopPropagation={() => {
         if (onToggleLock) onToggleLock();
       }}
@@ -96,7 +97,7 @@
 
     <div class="flex flex-row gap-0.5 mr-1">
       <button
-        title="Move up"
+        title="위로 이동"
         on:click={() => {
           if (!locked && onMoveUp) onMoveUp();
         }}
@@ -119,7 +120,7 @@
         </svg>
       </button>
       <button
-        title="Move down"
+        title="아래로 이동"
         on:click={() => {
           if (!locked && onMoveDown) onMoveDown();
         }}
@@ -144,7 +145,7 @@
     </div>
 
     <button
-      title="Add path after"
+      title="뒤에 경로 추가"
       on:click={() => {
         if (!locked && onAddPathAfter) onAddPathAfter();
       }}
@@ -167,7 +168,7 @@
     </button>
 
     <button
-      title="Add wait after"
+      title="뒤에 대기 추가"
       on:click={() => {
         if (!locked && onInsertAfter) onInsertAfter();
       }}
@@ -187,7 +188,30 @@
     </button>
 
     <button
-      title="Remove"
+      title="뒤에 액션 추가"
+      on:click={() => {
+        if (!locked && onAddActionAfter) onAddActionAfter();
+      }}
+      class="text-purple-500 hover:text-purple-600"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        class="size-5"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          d="M17.25 6.75 22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3-4.5 16.5"
+        />
+      </svg>
+    </button>
+
+    <button
+      title="제거"
       on:click={() => {
         if (!locked && onRemove) onRemove();
       }}

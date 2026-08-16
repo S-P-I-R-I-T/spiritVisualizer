@@ -28,6 +28,7 @@
   import SaveDialog from "./lib/components/SaveDialog.svelte";
   import DualPathSaveDialog from "./lib/components/DualPathSaveDialog.svelte";
   import ProgressDialog from "./lib/components/ProgressDialog.svelte";
+  import SnippetManager from "./lib/components/SnippetManager.svelte";
   import _ from "lodash";
   import hotkeys from "hotkeys-js";
   import { createAnimationController } from "./utils/animation";
@@ -40,15 +41,11 @@
     generateOnionLayers,
   } from "./utils";
   import {
-    easeInOutQuad,
     getCurvePoint,
     getRandomColor,
     quadraticToCubic,
-    radiansToDegrees,
-    shortestRotation,
     downloadTrajectory,
     loadTrajectoryFromFile,
-    loadRobotImage,
     updateRobotImageDisplay,
   } from "./utils";
   import {
@@ -77,6 +74,7 @@
       controlPoints: line.controlPoints || [],
       color: line.color || getRandomColor(),
       name: line.name || "",
+      actions: line.actions || [],
       waitBeforeMs: Math.max(
         0,
         Number(line.waitBeforeMs ?? line.waitBefore?.durationMs ?? 0),
@@ -103,9 +101,6 @@
   // Animation state
   let percent: number = 0;
   let playing = false;
-  let animationFrame: number;
-  let startTime: number | null = null;
-  let previousTime: number | null = null;
   // Save dialog state
   let showSaveDialog = false;
   let showDualPathSaveDialog = false;
@@ -1530,7 +1525,7 @@
       await saveFile();
     } catch (e) {
       console.error("Failed to save project:", e);
-      alert("Failed to save file.");
+      alert("파일 저장 실패.");
     }
   }
 
@@ -1574,14 +1569,14 @@
   // Export path animation as GIF
   async function exportPathAsGif() {
     if (!twoElement || !two) {
-      alert("Canvas not ready. Please try again.");
+      alert("캔버스가 준비되지 않았습니다. 다시 시도해 주세요.");
       return;
     }
     
     // Two.js can render as canvas or SVG; exporter supports both.
     const rendererElement = two.renderer.domElement;
     if (!rendererElement) {
-      alert("Unable to access renderer for export.");
+      alert("내보내기용 렌더러에 접근할 수 없습니다.");
       return;
     }
     
@@ -1591,7 +1586,7 @@
     const hasSinglePath = lines.length > 0;
     
     if (!hasActivePaths && !hasDualPath && !hasSinglePath) {
-      alert("No paths to export. Please create a path first.");
+      alert("내보낼 경로가 없습니다. 먼저 경로를 만드세요.");
       return;
     }
 
@@ -1678,7 +1673,7 @@
       }
 
       if (totalDuration <= 0) {
-        alert("Path duration is too short to export.");
+        alert("경로 길이가 너무 짧아 내보낼 수 없습니다.");
         exportingGif = false;
         return;
       }
@@ -1773,7 +1768,7 @@
       
       // Don't show alert if user cancelled
       if (!errorMsg.includes('cancelled')) {
-        alert("Failed to export GIF: " + errorMsg);
+        alert("GIF 내보내기 실패: " + errorMsg);
       }
       
       cancelGifExport = false;
@@ -1972,7 +1967,7 @@
             : "path.pp",
           types: [
             {
-              description: "Path files",
+              description: "경로 파일",
               accept: { "application/json": [".pp", ".json"] },
             },
           ],
@@ -1997,7 +1992,7 @@
           // ignore
         }
         isUnsaved.set(false);
-        alert(`Saved to: ${handle.name || "selected file"}`);
+        alert(`저장됨: ${handle.name || "선택한 파일"}`);
         return;
       } catch (err) {
         console.error("SaveFilePicker error:", err);
@@ -2011,7 +2006,7 @@
         const [handle] = await win.showOpenFilePicker({
           types: [
             {
-              description: "Path files",
+              description: "경로 파일",
               accept: { "application/json": [".pp", ".json"] },
             },
           ],
@@ -2026,7 +2021,7 @@
             currentFilePath.set(handle.name || null);
           } catch (e) {}
           isUnsaved.set(false);
-          alert(`Saved to local file: ${handle.name || "selected file"}`);
+          alert(`로컬 파일에 저장됨: ${handle.name || "선택한 파일"}`);
           return;
         }
       } catch (err) {
@@ -2040,7 +2035,7 @@
     try {
       await saveFile();
       alert(
-        "Your browser does not support native file dialogs. The project was saved to the app's storage.\n\nOpen the File Manager to download or export the file to your computer.",
+        "브라우저가 네이티브 파일 대화상자를 지원하지 않습니다. 프로젝트가 앱 저장소에 저장되었습니다.\n\n파일을 컴퓨터로 다운로드하거나 내보내려면 파일 관리자를 여세요.",
       );
     } catch (err) {
       console.error("Failed to save into app storage:", err);
@@ -2050,30 +2045,9 @@
       } catch (err2) {
         console.error("Save As fallback failed:", err2);
         alert(
-          "Failed to save file. Your browser may not support file picker APIs.",
+          "파일 저장 실패. 브라우저가 파일 선택 API를 지원하지 않을 수 있습니다.",
         );
       }
-    }
-  }
-
-  function animate(timestamp: number) {
-    if (!startTime) {
-      startTime = timestamp;
-    }
-
-    if (previousTime !== null) {
-      const deltaTime = timestamp - previousTime;
-      if (percent >= 100) {
-        percent = 0;
-      } else {
-        percent += (0.65 / lines.length) * (deltaTime * 0.1);
-      }
-    }
-
-    previousTime = timestamp;
-
-    if (playing) {
-      requestAnimationFrame(animate);
     }
   }
 
@@ -2448,18 +2422,18 @@
         await browserFileStore.writeFile($currentFilePath, content);
         isUnsaved.set(false);
         // Provide simple feedback
-        alert(`Saved to project storage: ${$currentFilePath}`);
+        alert(`프로젝트 저장소에 저장됨: ${$currentFilePath}`);
       } else {
         // No current project file selected — save into browser cache as a new file
         const defaultName = `path_${Date.now()}.pp`;
         await browserFileStore.writeFile(defaultName, content);
         currentFilePath.set(defaultName);
         isUnsaved.set(false);
-        alert(`Saved to project storage as: ${defaultName}`);
+        alert(`프로젝트 저장소에 ${defaultName}(으)로 저장됨`);
       }
     } catch (err) {
       console.error("Failed to save project to storage:", err);
-      alert("Failed to save project to browser storage.");
+      alert("프로젝트를 브라우저 저장소에 저장 실패.");
     }
   }
 
@@ -2471,7 +2445,7 @@
 
     // Check if file is a .pp file
     if (!file.name.endsWith(".pp")) {
-      alert("Please select a .pp file");
+      alert(".pp 파일을 선택해 주세요");
       // Reset the file input
       elem.value = "";
       return;
@@ -2651,7 +2625,7 @@
   ) {
     const lineIndex = lines.findIndex((l) => l.id === lineId);
     if (lineIndex === -1) {
-      alert("Could not find line to optimize.");
+      alert("최적화할 선을 찾을 수 없습니다.");
       return;
     }
 
@@ -2711,7 +2685,7 @@
       }
     } catch (err) {
       console.error(err);
-      alert((err as Error).message || "Optimization failed.");
+      alert((err as Error).message || "최적화 실패.");
     } finally {
       optimizingLineIds = { ...optimizingLineIds, [lineId]: false };
     }
@@ -2728,10 +2702,6 @@
     } finally {
       optimizingAll = false;
     }
-  }
-
-  function loadRobot(evt: Event) {
-    loadRobotImage(evt, () => updateRobotImageDisplay());
   }
 
   function addNewLine() {
@@ -2849,25 +2819,8 @@
     }
   });
 
-  // Auto-export for CI/testing: if the app is loaded with URL hash #export-gif-test, automatically run GIF export once mounted
+  // Handle save dialog event
   onMount(() => {
-    if (
-      typeof window !== "undefined" &&
-      window.location &&
-      window.location.hash === "#export-gif-test"
-    ) {
-      // Delay slightly to allow initial rendering and Two.js to initialize
-      setTimeout(async () => {
-        try {
-          // auto GIF export removed (exportGif deleted)
-          console.log("Auto GIF export skipped (exportGif removed)");
-        } catch (err) {
-          console.error("Auto GIF export failed:", err);
-        }
-      }, 1500);
-    }
-
-    // Handle save dialog event
     const handleSaveDialog = async (event: any) => {
       const { fileName } = event.detail;
       isSaving = true;
@@ -2893,7 +2846,7 @@
         showSaveDialog = false;
       } catch (error) {
         console.error("Save failed:", error);
-        alert("Failed to save file: " + (error instanceof Error ? error.message : String(error)));
+        alert("파일 저장 실패: " + (error instanceof Error ? error.message : String(error)));
       } finally {
         isSaving = false;
       }
@@ -2963,7 +2916,7 @@
         showDualPathSaveDialog = false;
       } catch (error) {
         console.error("Dual path save failed:", error);
-        alert("Failed to save: " + (error instanceof Error ? error.message : String(error)));
+        alert("저장 실패: " + (error instanceof Error ? error.message : String(error)));
       } finally {
         isSaving = false;
       }
@@ -3033,6 +2986,8 @@
     gifExportStatus = "Cancelling...";
   }}
 />
+
+<SnippetManager />
 
 <!--   {saveFile} -->
 <div

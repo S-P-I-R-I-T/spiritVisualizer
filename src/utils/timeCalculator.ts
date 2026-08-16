@@ -148,6 +148,12 @@ export function calculatePathTime(
       return;
     }
 
+    if (item.kind === "action") {
+      // Actions are code executed on the robot; they have no fixed duration
+      // in the visualizer, so they do not affect the timeline.
+      return;
+    }
+
     const line = lineById.get(item.lineId);
     if (!line || !line.endPoint) {
       // Skip missing or malformed lines in sequence

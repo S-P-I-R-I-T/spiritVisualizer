@@ -1,5 +1,4 @@
 import type { Point, Line, Shape, Settings } from "../types";
-import { getRandomColor } from "../utils";
 
 /**
  * Default robot dimensions

@@ -16,6 +16,7 @@
   import PathLineSection from "./components/PathLineSection.svelte";
   import PlaybackControls from "./components/PlaybackControls.svelte";
   import WaitRow from "./components/WaitRow.svelte";
+  import ActionRow from "./components/ActionRow.svelte";
   import { calculatePathTime } from "../utils";
 
   export let percent: number;
@@ -360,6 +361,9 @@
   function getWait(i: any) {
     return i as any;
   }
+  function getAction(i: any) {
+    return i as any;
+  }
 
   function insertLineAfter(seqIndex: number) {
     const seqItem = sequence[seqIndex];
@@ -520,7 +524,7 @@
     lines = _lns;
     if (removedId) {
       sequence = sequence.filter(
-        (s) => s.kind === "wait" || s.lineId !== removedId,
+        (s) => s.kind !== "path" || s.lineId !== removedId,
       );
       removeLineFromChains(removedId);
     }
@@ -628,6 +632,29 @@
       locked: false,
     } as SequenceItem;
     sequence = [wait, ...sequence];
+  }
+
+  function addAction() {
+    const action = {
+      kind: "action",
+      id: makeId(),
+      name: "Action",
+      code: "",
+      locked: false,
+    } as SequenceItem;
+    sequence = [...sequence, action];
+  }
+
+  function insertActionAfter(seqIndex: number) {
+    const newSeq = [...sequence];
+    newSeq.splice(seqIndex + 1, 0, {
+      kind: "action",
+      id: makeId(),
+      name: "Action",
+      code: "",
+      locked: false,
+    });
+    sequence = newSeq;
   }
 
   function addPathAtStart() {
@@ -757,6 +784,10 @@
       if (it.kind === "wait") {
         return (it as any).locked ?? false;
       }
+      // action
+      if (it.kind === "action") {
+        return (it as any).locked ?? false;
+      }
       return false;
     };
 
@@ -785,7 +816,7 @@
 
     <div class="w-full rounded-md border border-neutral-200 dark:border-neutral-700 p-3 bg-white dark:bg-neutral-800">
       <div class="flex items-center gap-2 mb-2">
-        <p class="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-300">Path Chains</p>
+        <p class="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-300">경로 체인</p>
         <select
           bind:value={selectedChainId}
           class="flex-1 px-2 py-1 text-xs rounded border border-neutral-300 dark:border-neutral-600 bg-neutral-50 dark:bg-neutral-900"
@@ -794,14 +825,14 @@
             <option value={chain.id}>{chain.name} ({(chain.lineIds || []).length})</option>
           {/each}
         </select>
-        <button on:click={addPathChain} class="px-2 py-1 text-xs rounded bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-200">New</button>
-        <button on:click={duplicateSelectedPathChain} class="px-2 py-1 text-xs rounded bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-200">Duplicate</button>
+        <button on:click={addPathChain} class="px-2 py-1 text-xs rounded bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-200">추가</button>
+        <button on:click={duplicateSelectedPathChain} class="px-2 py-1 text-xs rounded bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-200">복제</button>
         <button
           on:click={removeSelectedPathChain}
           disabled={pathChains.length <= 1}
           class="px-2 py-1 text-xs rounded bg-rose-100 text-rose-700 dark:bg-rose-900 dark:text-rose-200 disabled:opacity-40"
         >
-          Remove
+          제거
         </button>
       </div>
 
@@ -813,7 +844,7 @@
               bind:value={chainNameDraft}
               on:input={updateSelectedChainName}
               class="flex-1 px-2 py-1 text-xs rounded border border-neutral-300 dark:border-neutral-600 bg-neutral-50 dark:bg-neutral-900"
-              placeholder="Chain name"
+              placeholder="체인 이름"
             />
           </div>
 
@@ -825,7 +856,7 @@
               class="w-10 h-8 rounded border border-neutral-300 dark:border-neutral-600 bg-neutral-50 dark:bg-neutral-900"
               title="Path chain color"
             />
-            <span class="text-xs text-neutral-500 dark:text-neutral-400">Path color</span>
+            <span class="text-xs text-neutral-500 dark:text-neutral-400">경로 색상</span>
           </div>
         </div>
       {/if}
@@ -865,6 +896,41 @@
               {recordChange}
             />
           {/each}
+        {:else if item.kind === "action"}
+          <ActionRow
+            name={getAction(item).name}
+            code={getAction(item).code}
+            locked={getAction(item).locked ?? false}
+            onToggleLock={() => {
+              const newSeq = [...sequence];
+              newSeq[sIdx] = {
+                ...getAction(item),
+                locked: !(getAction(item).locked ?? false),
+              };
+              sequence = newSeq;
+              recordChange?.();
+            }}
+            onChange={(newName, newCode) => {
+              const newSeq = [...sequence];
+              newSeq[sIdx] = {
+                ...getAction(item),
+                name: newName,
+                code: newCode,
+              };
+              sequence = newSeq;
+            }}
+            onRemove={() => {
+              const newSeq = [...sequence];
+              newSeq.splice(sIdx, 1);
+              sequence = newSeq;
+            }}
+            onInsertAfter={() => insertActionAfter(sIdx)}
+            onAddPathAfter={() => insertPathAfter(sIdx)}
+            onMoveUp={() => moveSequenceItem(sIdx, -1)}
+            onMoveDown={() => moveSequenceItem(sIdx, 1)}
+            canMoveUp={sIdx !== 0}
+            canMoveDown={sIdx !== sequence.length - 1}
+          />
         {:else}
           <WaitRow
             name={getWait(item).name}
@@ -905,6 +971,7 @@
               sequence = newSeq;
             }}
             onAddPathAfter={() => insertPathAfter(sIdx)}
+            onAddActionAfter={() => insertActionAfter(sIdx)}
             onMoveUp={() => moveSequenceItem(sIdx, -1)}
             onMoveDown={() => moveSequenceItem(sIdx, 1)}
             canMoveUp={sIdx !== 0}
@@ -934,7 +1001,7 @@
             d="M12 4.5v15m7.5-7.5h-15"
           />
         </svg>
-        <p>Add Path</p>
+        <p>경로 추가</p>
       </button>
 
       <button
@@ -956,7 +1023,28 @@
             d="M12 7v5l3 2"
           />
         </svg>
-        <p>Add Wait</p>
+        <p>대기 추가</p>
+      </button>
+
+      <button
+        on:click={addAction}
+        class="font-semibold text-purple-500 text-sm flex flex-row justify-start items-center gap-1"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          class="size-5"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M17.25 6.75 22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3-4.5 16.5"
+          />
+        </svg>
+        <p>액션 추가</p>
       </button>
     </div>
   </div>

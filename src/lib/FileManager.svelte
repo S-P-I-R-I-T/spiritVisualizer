@@ -10,7 +10,6 @@
   import type { FileInfo, Point, Line, Shape, SequenceItem, PathChain } from "../types";
   import * as browserFileStore from "../utils/browserFileStore";
   import { currentFilePath, isUnsaved, dualPathMode, secondFilePath } from "../stores";
-  import { getRandomColor } from "../utils";
   import {
     saveAutoPathsDirectory,
     getSavedAutoPathsDirectory,
@@ -67,6 +66,7 @@
     return (input || []).map((line) => ({
       ...line,
       id: line.id || `line-${Math.random().toString(36).slice(2)}`,
+      actions: line.actions || [],
       waitBeforeMs: Math.max(
         0,
         Number(line.waitBeforeMs ?? (line as any).waitBefore?.durationMs ?? 0),
@@ -102,7 +102,7 @@
     try {
       await refreshDirectory();
     } catch (error) {
-      errorMessage = `Failed to load files: ${getErrorMessage(error)}`;
+      errorMessage = `파일 불러오기 실패: ${getErrorMessage(error)}`;
     } finally {
       loading = false;
     }
@@ -134,7 +134,7 @@
             path: file.path,
             size: file.size,
             modified: new Date((file as any).modified),
-            error: isSupported ? undefined : `Unsupported file type: ${fileExt}`,
+            error: isSupported ? undefined : `지원하지 않는 파일 형식: ${fileExt}`,
           } as FileInfo;
         })
         .filter((file) =>
@@ -143,14 +143,14 @@
 
       errorMessage = "";
     } catch (error) {
-      errorMessage = `Error accessing files: ${getErrorMessage(error)}`;
+      errorMessage = `파일 접근 오류: ${getErrorMessage(error)}`;
       files = [];
     }
   }
 
   // Directory logic is not needed in browser mode
   function changeDirectory() {
-    showToast("Directory selection is not available in browser mode.", "info");
+    showToast("브라우저 모드에서는 디렉터리 선택을 사용할 수 없습니다.", "info");
   }
 
   // NEW: Start renaming a file
@@ -172,7 +172,7 @@
     // Validate the new name
     const newName = renameInputValue.trim();
     if (!newName) {
-      showToast("Please enter a file name", "warning");
+      showToast("파일 이름을 입력해 주세요", "warning");
       return;
     }
 
@@ -188,7 +188,7 @@
     // Validate file name format
     if (!/^[a-zA-Z0-9_\-. ]+\.pp$/.test(newFileName)) {
       showToast(
-        "Invalid file name. Use only letters, numbers, underscores, dashes, and spaces.",
+        "잘못된 파일 이름입니다. 문자, 숫자, 밑줄, 대시, 공백만 사용할 수 있습니다.",
         "error",
       );
       return;
@@ -198,7 +198,7 @@
       // Check if new file already exists
       const exists = await browserFileStore.fileExists(newFilePath);
       if (exists) {
-        showToast(`File "${newFileName}" already exists`, "error");
+        showToast(`"${newFileName}" 파일이 이미 존재합니다`, "error");
         return;
       }
 
@@ -219,18 +219,18 @@
           currentFilePath.set(newFilePath);
         }
 
-        showToast(`Renamed to: ${newFileName}`, "success");
+        showToast(`이름 변경: ${newFileName}`, "success");
         await refreshDirectory();
         cancelRename();
       }
     } catch (error) {
-      showToast(`Failed to rename: ${getErrorMessage(error)}`, "error");
+      showToast(`이름 변경 실패: ${getErrorMessage(error)}`, "error");
     }
   }
 
   async function loadFile(file: FileInfo) {
     if (file.error) {
-      showToast(`Cannot load file: ${file.error}`, "error");
+      showToast(`파일을 불러올 수 없습니다: ${file.error}`, "error");
       return;
     }
 
@@ -240,7 +240,7 @@
 
       // Validate the loaded data
       if (!data.startPoint || !data.lines) {
-        throw new Error("Invalid file format: missing required fields");
+        throw new Error("잘못된 파일 형식: 필수 필드 누락");
       }
 
       // Update the application state
@@ -257,12 +257,12 @@
 
       selectedFile = file;
 
-      showToast(`Loaded: ${file.name}`, "success");
+      showToast(`불러옴: ${file.name}`, "success");
     } catch (error) {
       const errMsg = getErrorMessage(error);
       const message = errMsg.includes("Invalid file format")
-        ? "Invalid file format. This may not be a valid path file."
-        : `Error loading file: ${errMsg}`;
+        ? "잘못된 파일 형식입니다. 유효한 경로 파일이 아닐 수 있습니다."
+        : `파일 불러오기 오류: ${errMsg}`;
 
       showToast(message, "error");
       errorMessage = message;
@@ -271,7 +271,7 @@
 
   async function loadSecondFile(file: FileInfo) {
     if (file.error) {
-      showToast(`Cannot load file: ${file.error}`, "error");
+      showToast(`파일을 불러올 수 없습니다: ${file.error}`, "error");
       return;
     }
 
@@ -281,7 +281,7 @@
 
       // Validate the loaded data
       if (!data.startPoint || !data.lines) {
-        throw new Error("Invalid file format: missing required fields");
+        throw new Error("잘못된 파일 형식: 필수 필드 누락");
       }
 
       // Update the second path state
@@ -296,12 +296,12 @@
 
       selectedFile2 = file;
 
-      showToast(`Loaded second path: ${file.name}`, "success");
+      showToast(`두 번째 경로 불러옴: ${file.name}`, "success");
     } catch (error) {
       const errMsg = getErrorMessage(error);
       const message = errMsg.includes("Invalid file format")
-        ? "Invalid file format. This may not be a valid path file."
-        : `Error loading file: ${errMsg}`;
+        ? "잘못된 파일 형식입니다. 유효한 경로 파일이 아닐 수 있습니다."
+        : `파일 불러오기 오류: ${errMsg}`;
 
       showToast(message, "error");
       errorMessage = message;
@@ -310,7 +310,7 @@
 
   async function saveCurrentToFile() {
     if (!selectedFile) {
-      showToast("No file selected", "error");
+      showToast("선택된 파일 없음", "error");
       return;
     }
 
@@ -329,10 +329,10 @@
       await refreshDirectory();
 
       isUnsaved.set(false);
-      showToast(`Saved: ${selectedFile.name}`, "success");
+      showToast(`저장됨: ${selectedFile.name}`, "success");
     } catch (error) {
-      errorMessage = `Failed to save file: ${getErrorMessage(error)}`;
-      showToast("Failed to save file", "error");
+      errorMessage = `파일 저장 실패: ${getErrorMessage(error)}`;
+      showToast("파일 저장 실패", "error");
     }
   }
 
@@ -359,9 +359,9 @@
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
-      showToast(`Downloaded: ${a.download}`, "success");
+      showToast(`다운로드됨: ${a.download}`, "success");
     } catch (error) {
-      showToast(`Failed to download file: ${getErrorMessage(error)}`, "error");
+      showToast(`파일 다운로드 실패: ${getErrorMessage(error)}`, "error");
     }
   }
 
@@ -370,7 +370,7 @@
     const win: any = window as any;
     if (!win.showOpenFilePicker) {
       showToast(
-        "This browser does not support direct file overwrite. Use 'Download .pp' instead.",
+        "이 브라우저는 직접 파일 덮어쓰기를 지원하지 않습니다. '다운로드 .pp'를 대신 사용하세요.",
         "warning",
       );
       return;
@@ -380,7 +380,7 @@
       const [handle] = await win.showOpenFilePicker({
         types: [
           {
-            description: "Path files",
+            description: "경로 파일",
             accept: { "application/json": [".pp", ".json"] },
           },
         ],
@@ -405,15 +405,15 @@
       await writable.write(content);
       await writable.close();
 
-      showToast(`Saved to local file: ${handle.name}`, "success");
+      showToast(`로컬 파일에 저장됨: ${handle.name}`, "success");
     } catch (error) {
       console.error("File System API error:", error);
-      showToast(`Failed to write local file: ${getErrorMessage(error)}`, "error");
+      showToast(`로컬 파일 쓰기 실패: ${getErrorMessage(error)}`, "error");
     }
   }
   async function createNewFile() {
     if (!newFileName.trim()) {
-      showToast("Please enter a file name", "warning");
+      showToast("파일 이름을 입력해 주세요", "warning");
       return;
     }
 
@@ -425,7 +425,7 @@
     // Validate file name
     if (!/^[a-zA-Z0-9_\-. ]+\.pp$/.test(fileName)) {
       showToast(
-        "Invalid file name. Use only letters, numbers, underscores, dashes, and spaces.",
+        "잘못된 파일 이름입니다. 문자, 숫자, 밑줄, 대시, 공백만 사용할 수 있습니다.",
         "error",
       );
       return;
@@ -435,7 +435,7 @@
       // Check if file exists
       const exists = await browserFileStore.fileExists(filePath);
       if (exists) {
-        if (!confirm(`File "${fileName}" already exists. Overwrite?`)) {
+        if (!confirm(`"${fileName}" 파일이 이미 존재합니다. 덮어쓸까요?`)) {
           return;
         }
       }
@@ -462,19 +462,19 @@
       if (selectedFile) {
         currentFilePath.set(selectedFile.path);
         isUnsaved.set(false);
-        showToast(`Created: ${fileName}`, "success");
+        showToast(`생성됨: ${fileName}`, "success");
       }
     } catch (error) {
       console.error("Error creating file:", error);
-      errorMessage = `Failed to create file: ${getErrorMessage(error)}`;
-      showToast("Failed to create file", "error");
+      errorMessage = `파일 생성 실패: ${getErrorMessage(error)}`;
+      showToast("파일 생성 실패", "error");
     }
   }
 
   async function deleteFile(file: FileInfo) {
     if (
       !confirm(
-        `Are you sure you want to delete "${file.name}"?\nThis action cannot be undone.`,
+        `"${file.name}" 파일을 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`,
       )
     ) {
       return;
@@ -506,7 +506,7 @@
       }
 
       if (!deleted) {
-        const msg = `Could not delete file: ${file.name} (not found in cache)`;
+        const msg = `파일을 삭제할 수 없습니다: ${file.name} (캐시에서 찾을 수 없음)`;
         console.warn(msg, { tried: candidates });
         showToast(msg, "error");
         // Dump storage to console for debugging
@@ -521,11 +521,11 @@
       }
 
       await refreshDirectory();
-      showToast(`Deleted: ${file.name}`, "success");
+      showToast(`삭제됨: ${file.name}`, "success");
     } catch (error) {
       console.error("Error deleting file:", error);
-      errorMessage = `Failed to delete file: ${getErrorMessage(error)}`;
-      showToast("Failed to delete file", "error");
+      errorMessage = `파일 삭제 실패: ${getErrorMessage(error)}`;
+      showToast("파일 삭제 실패", "error");
     }
   }
 
@@ -536,16 +536,16 @@
       const parsed = raw ? JSON.parse(raw) : null;
       console.info("pp_files:", parsed);
       const count = parsed ? Object.keys(parsed).length : 0;
-      showToast(`Storage contains ${count} file(s). See console for details.`, "info");
+      showToast(`저장소에 ${count}개의 파일이 있습니다. 자세한 내용은 콘솔을 참조하세요.`, "info");
     } catch (err) {
       console.error("Failed to read pp_files", err);
-      showToast("Failed to read storage (see console)", "error");
+      showToast("저장소 읽기 실패 (콘솔 참조)", "error");
     }
   }
 
   async function duplicateFile() {
     if (!selectedFile) {
-      showToast("No file selected to duplicate", "warning");
+      showToast("복제할 파일이 선택되지 않았습니다", "warning");
       return;
     }
 
@@ -594,17 +594,17 @@
         await loadFile(newFile);
       }
 
-      showToast(`Duplicated: ${newFileName}`, "success");
+      showToast(`복제됨: ${newFileName}`, "success");
     } catch (error) {
       console.error("Error duplicating file:", error);
-      errorMessage = `Failed to duplicate file: ${getErrorMessage(error)}`;
-      showToast("Failed to duplicate file", "error");
+      errorMessage = `파일 복제 실패: ${getErrorMessage(error)}`;
+      showToast("파일 복제 실패", "error");
     }
   }
 
   async function duplicateAndMirrorFile() {
     if (!selectedFile) {
-      showToast("No file selected to mirror", "warning");
+      showToast("반전할 파일이 선택되지 않았습니다", "warning");
       return;
     }
 
@@ -622,13 +622,13 @@
       
       // Store the mirrored data and open custom dialog
       pendingMirrorData = mirroredData;
-      nameDialogTitle = "Name Mirrored Path";
+      nameDialogTitle = "반전 경로 이름 지정";
       nameDialogDefault = defaultName;
       nameDialogOpen = true;
     } catch (error) {
       console.error("Error duplicating and mirroring file:", error);
-      errorMessage = `Failed to create mirrored file: ${getErrorMessage(error)}`;
-      showToast("Failed to create mirrored file", "error");
+      errorMessage = `반전 파일 생성 실패: ${getErrorMessage(error)}`;
+      showToast("반전 파일 생성 실패", "error");
     }
   }
 
@@ -660,11 +660,11 @@
         await loadFile(newFile);
       }
 
-      showToast(`Created mirrored: ${newFileName}`, "success");
+      showToast(`반전 생성됨: ${newFileName}`, "success");
     } catch (error) {
       console.error("Error saving mirrored file:", error);
-      errorMessage = `Failed to save mirrored file: ${getErrorMessage(error)}`;
-      showToast("Failed to save mirrored file", "error");
+      errorMessage = `반전 파일 저장 실패: ${getErrorMessage(error)}`;
+      showToast("반전 파일 저장 실패", "error");
     } finally {
       pendingMirrorData = null;
       nameDialogOpen = false;
@@ -857,12 +857,12 @@
     >
       <div class="flex items-center justify-between">
         <h2 class="text-base font-semibold text-neutral-900 dark:text-white">
-          Files
+          파일
         </h2>
         <button
           on:click={() => (isOpen = false)}
           class="p-1 rounded transition-colors duration-250"
-          title="Close"
+          title="닫기"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -900,7 +900,7 @@
         <div class="space-y-2">
           <input
             bind:value={newFileName}
-            placeholder="Enter file name (e.g., my_path.pp)..."
+            placeholder="파일 이름 입력 (예: my_path.pp)..."
             class="w-full px-2 py-1.5 text-sm border border-neutral-300 dark:border-neutral-600 rounded-md bg-white dark:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
             on:keydown={(e) => e.key === "Enter" && createNewFile()}
           />
@@ -909,7 +909,7 @@
               on:click={createNewFile}
               class="flex-1 px-3 py-1.5 text-sm bg-green-500 hover:bg-green-600 text-white rounded-md transition-colors"
             >
-              Create
+              생성
             </button>
             <button
               on:click={() => {
@@ -918,7 +918,7 @@
               }}
               class="flex-1 px-3 py-1.5 text-sm bg-neutral-500 hover:bg-neutral-600 text-white rounded-md transition-colors"
             >
-              Cancel
+              취소
             </button>
           </div>
         </div>
@@ -941,7 +941,7 @@
               d="M12 4.5v15m7.5-7.5h-15"
             />
           </svg>
-          New Path File
+          새 경로 파일
         </button>
       {/if}
     </div>
@@ -954,7 +954,7 @@
             class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"
           ></div>
           <div class="text-neutral-500 dark:text-neutral-400">
-            Loading files...
+            파일 불러오는 중...
           </div>
         </div>
       {:else if errorMessage && files.length === 0}
@@ -994,13 +994,13 @@
             />
           </svg>
           <div class="text-center text-xs text-neutral-500 dark:text-neutral-400 mb-2">
-            No files yet
+            아직 파일 없음
           </div>
           <button
             on:click={() => (creatingNewFile = true)}
             class="px-2 py-1 text-xs bg-green-500 hover:bg-green-600 text-white rounded transition-colors"
           >
-            Create First
+            첫 파일 생성
           </button>
         </div>
       {:else}
@@ -1008,7 +1008,7 @@
           <div
             class="sticky top-0 bg-white dark:bg-neutral-900 px-3 py-1 border-b border-neutral-200 dark:border-neutral-700 text-xs text-neutral-500 dark:text-neutral-400"
           >
-            Showing {files.length} file{files.length !== 1 ? "s" : ""}
+            파일 {files.length}개 표시
           </div>
 
           {#each files as file (file.path)}
@@ -1032,7 +1032,7 @@
                   }
                 }
               }}
-              aria-label={`Open ${file.name}`}
+              aria-label={`${file.name} 열기`}
               class:bg-blue-50={selectedFile?.path === file.path}
               class:dark:bg-blue-900={selectedFile?.path === file.path}
               class:bg-purple-50={selectedFile2?.path === file.path}
@@ -1054,13 +1054,13 @@
                       on:click|stopPropagation={renameFile}
                       class="px-2 py-1 text-xs bg-green-500 hover:bg-green-600 text-white rounded transition-colors"
                     >
-                      Save
+                      저장
                     </button>
                     <button
                       on:click|stopPropagation={cancelRename}
                       class="px-2 py-1 text-xs bg-neutral-500 hover:bg-neutral-600 text-white rounded transition-colors"
                     >
-                      Cancel
+                      취소
                     </button>
                   </div>
                 </div>
@@ -1092,7 +1092,7 @@
                     <button
                       on:click|stopPropagation={() => startRename(file)}
                       class="p-1.5 rounded hover:bg-blue-500 hover:text-white transition-colors flex-shrink-0"
-                      title="Rename file"
+                      title="파일 이름 변경"
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -1114,7 +1114,7 @@
                     <button
                       on:click|stopPropagation={() => deleteFile(file)}
                       class="p-1.5 rounded hover:bg-red-500 hover:text-white transition-colors flex-shrink-0"
-                      title="Delete file"
+                      title="파일 삭제"
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -1154,7 +1154,7 @@
           <button
             on:click={() => selectedFile && startRename(selectedFile)}
             class="px-2 py-1.5 text-xs bg-amber-500 hover:bg-amber-600 text-white rounded transition-colors flex items-center justify-center gap-1"
-            title="Rename this file"
+            title="이 파일 이름 변경"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -1175,7 +1175,7 @@
           <button
             on:click={() => selectedFile && deleteFile(selectedFile)}
             class="px-2 py-1.5 text-xs bg-red-500 hover:bg-red-600 text-white rounded transition-colors flex items-center justify-center gap-1"
-            title="Delete this file"
+            title="이 파일 삭제"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -1196,7 +1196,7 @@
           <button
             on:click={duplicateFile}
             class="px-2 py-1.5 text-xs bg-blue-500 hover:bg-blue-600 text-white rounded transition-colors flex items-center justify-center gap-1"
-            title="Duplicate this file"
+            title="이 파일 복제"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -1219,7 +1219,7 @@
         <button
           on:click={duplicateAndMirrorFile}
           class="w-full px-3 py-2.5 text-sm font-medium bg-purple-500 hover:bg-purple-600 text-white rounded-lg transition-colors flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
-          title="Create a mirrored copy of this path"
+          title="이 경로의 반전된 복사본 생성"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -1235,55 +1235,55 @@
               d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"
             />
           </svg>
-          <span>Duplicate &amp; Mirror Path</span>
+          <span>복제 &amp; 반전 경로</span>
         </button>
 
         <!-- Saving Operations -->
         <div class="space-y-1">
           <div class="text-xs font-medium text-neutral-600 dark:text-neutral-400 px-1">
-            Save Options
+            저장 옵션
           </div>
           <div class="grid grid-cols-2 gap-1">
             <button
               on:click={saveCurrentToFile}
               class="px-2 py-1.5 text-xs bg-emerald-600 hover:bg-emerald-700 text-white rounded transition-colors flex items-center justify-center gap-1"
               disabled={!selectedFile}
-              title="Save into selected file (overwrite)"
+              title="선택한 파일에 저장 (덮어쓰기)"
             >
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width={2} stroke="currentColor" class="size-3.5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 7.5A2.25 2.25 0 0 1 5.25 5.25h13.5A2.25 2.25 0 0 1 21 7.5v9a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 16.5v-9zM7.5 11.25h9M7.5 14.25h6" />
               </svg>
-              Overwrite
+              덮어쓰기
             </button>
             <button
               on:click={() => (creatingNewFile = true)}
               class="px-2 py-1.5 text-xs bg-green-500 hover:bg-green-600 text-white rounded transition-colors flex items-center justify-center gap-1"
-              title="Create new file and save"
+              title="새 파일 생성 및 저장"
             >
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width={2} stroke="currentColor" class="size-3.5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
               </svg>
-              New
+              새로 만들기
             </button>
             <button
               on:click={downloadCurrentToDisk}
               class="px-2 py-1.5 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors flex items-center justify-center gap-1"
-              title="Download .pp to computer"
+              title="컴퓨터에 .pp 다운로드"
             >
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width={2} stroke="currentColor" class="size-3.5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0 0 3-3m-3 3-3-3M21 21H3" />
               </svg>
-              Download
+              다운로드
             </button>
             <button
               on:click={pickAndOverwriteLocalFile}
               class="px-2 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-700 text-white rounded transition-colors flex items-center justify-center gap-1"
-              title="Save to local file"
+              title="로컬 파일에 저장"
             >
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width={2} stroke="currentColor" class="size-3.5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2M12 12v6m0-6V6m0 6l3-3m-3 3-3-3" />
               </svg>
-              Local
+              로컬
             </button>
           </div>
         </div>
@@ -1292,7 +1292,7 @@
       <div
         class="flex-shrink-0 p-3 border-t border-neutral-200 dark:border-neutral-700 text-center text-xs text-neutral-500 dark:text-neutral-400"
       >
-        Select a file to manage
+        관리할 파일을 선택하세요
       </div>
     {/if}
   </div>
@@ -1302,7 +1302,7 @@
   bind:isOpen={nameDialogOpen}
   title={nameDialogTitle}
   defaultValue={nameDialogDefault}
-  placeholder="Enter name..."
+  placeholder="이름 입력..."
   onConfirm={handleMirrorNameConfirm}
   onCancel={handleMirrorNameCancel}
 />

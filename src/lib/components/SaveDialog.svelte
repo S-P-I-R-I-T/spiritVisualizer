@@ -59,7 +59,7 @@
       role="button"
       tabindex="0"
       on:keydown={() => {}}
-      aria-label="Close save dialog"
+      aria-label="저장 대화상자 닫기"
       transition:fade={{ duration: 250 }}
     />
 
@@ -85,10 +85,10 @@
               d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33A3 3 0 0116.5 19.5H6.75z"
             />
           </svg>
-          Save Your Path
+          경로 저장
         </h2>
         <p class="text-sm text-neutral-600 dark:text-neutral-400 mt-1">
-          Your path will be saved to the project storage
+          경로가 프로젝트 저장소에 저장됩니다
         </p>
       </div>
 
@@ -99,7 +99,7 @@
             for="save-input"
             class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2"
           >
-            File name
+            파일 이름
           </label>
           <input
             bind:this={inputElement}
@@ -111,7 +111,7 @@
             class="w-full px-4 py-2.5 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white placeholder-neutral-500 dark:placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-transparent transition-all duration-300"
           />
           <p class="text-xs text-neutral-500 dark:text-neutral-400 mt-1.5">
-            .pp extension will be added automatically
+            .pp 확장자가 자동으로 추가됩니다
           </p>
         </div>
       </div>
@@ -122,7 +122,7 @@
           on:click={close}
           class="px-4 py-2 text-sm font-medium text-neutral-700 dark:text-neutral-300 bg-neutral-200 dark:bg-neutral-800 rounded-lg transition-all duration-250"
         >
-          Cancel
+          취소
         </button>
         <button
           on:click={handleSave}
@@ -150,7 +150,7 @@
                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
               />
             </svg>
-            Saving...
+            저장 중...
           {:else}
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -166,7 +166,7 @@
                 d="M12 4.5v15m7.5-7.5h-15"
               />
             </svg>
-            Save
+            저장
           {/if}
         </button>
       </div>

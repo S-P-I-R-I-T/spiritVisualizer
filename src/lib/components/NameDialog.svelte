@@ -3,9 +3,9 @@
   import { fade, fly } from "svelte/transition";
 
   export let isOpen = false;
-  export let title = "Enter Name";
+  export let title = "이름 입력";
   export let defaultValue = "";
-  export let placeholder = "Enter name...";
+  export let placeholder = "이름 입력...";
   export let onConfirm: (name: string) => void = () => {};
   export let onCancel: () => void = () => {};
 
@@ -93,14 +93,14 @@
           on:click={handleCancel}
           class="px-4 py-2 rounded-lg text-neutral-700 dark:text-neutral-300 bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600 transition-colors font-medium"
         >
-          Cancel
+          취소
         </button>
         <button
           on:click={handleConfirm}
           disabled={!inputValue.trim()}
           class="px-4 py-2 rounded-lg text-white bg-blue-600 hover:bg-blue-700 disabled:bg-neutral-400 disabled:cursor-not-allowed transition-colors font-medium"
         >
-          Confirm
+          확인
         </button>
       </div>
     </div>

@@ -48,11 +48,11 @@
       aria-modal="true"
     >
       <h2 class="text-lg font-semibold text-neutral-900 dark:text-white mb-4">
-        Save Path Changes
+        경로 변경 사항 저장
       </h2>
 
       <p class="text-sm text-neutral-600 dark:text-neutral-400 mb-6">
-        Which path would you like to save?
+        어떤 경로를 저장하시겠습니까?
       </p>
 
       <div class="space-y-3">
@@ -60,28 +60,28 @@
           on:click={handleSaveFirst}
           class="w-full px-4 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors text-sm font-medium"
         >
-          Save First Path Only
+          첫 번째 경로만 저장
         </button>
 
         <button
           on:click={handleSaveSecond}
           class="w-full px-4 py-3 bg-purple-500 hover:bg-purple-600 text-white rounded-lg transition-colors text-sm font-medium"
         >
-          Save Second Path Only
+          두 번째 경로만 저장
         </button>
 
         <button
           on:click={handleSaveBoth}
           class="w-full px-4 py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors text-sm font-medium"
         >
-          Save Both Paths
+          두 경로 모두 저장
         </button>
 
         <button
           on:click={close}
           class="w-full px-4 py-3 bg-neutral-300 dark:bg-neutral-600 hover:bg-neutral-400 dark:hover:bg-neutral-500 text-neutral-900 dark:text-white rounded-lg transition-colors text-sm font-medium"
         >
-          Cancel
+          취소
         </button>
       </div>
     </div>

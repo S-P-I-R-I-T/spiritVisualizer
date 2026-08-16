@@ -22,7 +22,7 @@
     <button
       on:click={toggleCollapsed}
       class="flex items-center gap-2 font-light hover:bg-neutral-100 dark:hover:bg-neutral-800/50 px-2 py-1 rounded transition-colors duration-250 text-sm"
-      title="{collapsed ? 'Show' : 'Hide'} control points"
+      title="{collapsed ? '표시' : '숨김'} 컨트롤 포인트"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -40,13 +40,13 @@
           d="m8.25 4.5 7.5 7.5-7.5 7.5"
         />
       </svg>
-      Control Points ({line.controlPoints.length})
+      컨트롤 포인트 ({line.controlPoints.length})
     </button>
 
     <button
       on:click={onAddControlPoint}
       class="flex items-center gap-1 px-2 py-1 text-xs font-semibold text-green-600 hover:text-green-700 disabled:opacity-40 disabled:cursor-not-allowed"
-      title={line.locked ? "Path locked" : "Add Control Point"}
+      title={line.locked ? "경로 잠금" : "컨트롤 포인트 추가"}
       disabled={line.locked}
     >
       <svg
@@ -63,7 +63,7 @@
           d="M12 4.5v15m7.5-7.5h-15"
         />
       </svg>
-      Add
+      추가
     </button>
   </div>
 
@@ -80,7 +80,7 @@
               <span
                 class="text-sm font-medium text-green-700 dark:text-green-300"
               >
-                Control Point {idx1 + 1}
+                컨트롤 포인트 {idx1 + 1}
               </span>
             </div>
             <button
@@ -91,7 +91,7 @@
                 recordChange();
               }}
               class="text-red-500 hover:text-red-600"
-              title="Remove Control Point"
+              title="컨트롤 포인트 제거"
               disabled={line.locked}
             >
               <svg
@@ -150,7 +150,7 @@
           </div>
 
           <div class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
-            Line {lineIdx + 1}, Control Point {idx1 + 1}
+            경로 {lineIdx + 1}, 컨트롤 포인트 {idx1 + 1}
           </div>
           <!-- Optimize button (temporarily hidden) -->
           <!-- <div class="mt-1">

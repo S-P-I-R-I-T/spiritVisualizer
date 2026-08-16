@@ -1,6 +1,12 @@
 import prettier from "prettier";
-import type { Point, Line, BasePoint, PathChain } from "../types";
-import { getCurvePoint } from "./math";
+import type {
+  Point,
+  Line,
+  BasePoint,
+  PathChain,
+  SequenceItem,
+} from "../types";
+import { getCurvePoint, getLineStartHeading, getLineEndHeading } from "./math";
 
 // Lazy-load Prettier's Java plugin; fall back gracefully if unavailable
 let cachedJavaPlugin: any | null = null;
@@ -64,11 +70,348 @@ function buildPathSegmentCode(line: Line, startExpression: string): string {
           .${headingTypeToFunctionName[line.endPoint.heading]}(${headingConfig})${reverseConfig}`;
 }
 
+/**
+ * Format a number for Java output: trim trailing zeros while keeping
+ * up to 3 decimal places (e.g. 144 -> "144", 15.5 -> "15.5").
+ */
+function fmtNumber(value: number): string {
+  const rounded = Math.round(value * 1000) / 1000;
+  return String(rounded);
+}
+
+function capitalize(value: string): string {
+  if (!value) return value;
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+/**
+ * Convert a camelCase identifier into SCREAMING_SNAKE_CASE for enum names.
+ */
+function toScreamingSnake(value: string): string {
+  return value
+    .replace(/([a-z0-9])([A-Z])/g, "$1_$2")
+    .replace(/([A-Z])([A-Z][a-z])/g, "$1_$2")
+    .toUpperCase();
+}
+
+type FullStep =
+  | {
+      kind: "path";
+      line: Line;
+      startName: string;
+      endName: string;
+      chainName: string;
+      stateName: string;
+      endHeading: number;
+    }
+  | { kind: "action"; name: string; code: string; stateName: string }
+  | { kind: "wait"; name: string; durationSeconds: number; stateName: string };
+
+/**
+ * Generate a complete, runnable autonomous OpMode (state machine style).
+ *
+ * Each step in the sequence becomes a PathState:
+ *   - path   -> DRIVE_<start>_<end> state that calls follower.followPath()
+ *               and advances once the follower is no longer busy,
+ *   - action -> ACTION_<name> state that runs the user-supplied code and
+ *               advances immediately,
+ *   - wait   -> WAIT_<name> state that advances after pathTimer reaches
+ *               the configured duration.
+ *
+ * The generated code drives the robot through the sequence in order and
+ * then stops, without any manual wiring.
+ */
+function generateFullAutonomous(
+  startPoint: Point,
+  lines: Line[],
+  sequence: SequenceItem[],
+  className: string,
+): string {
+  const safeClassName =
+    sanitizeIdentifier(className, "PedroAutonomous") || "PedroAutonomous";
+
+  const lineById = new Map<string, Line>();
+  lines.forEach((line, idx) => {
+    const id = line.id || `line-${idx + 1}`;
+    lineById.set(id, line);
+  });
+
+  // Default sequence: every line in order.
+  const seq: SequenceItem[] =
+    sequence && sequence.length
+      ? sequence
+      : lines.map((line, idx) => ({
+          kind: "path",
+          lineId: line.id || `line-${idx + 1}`,
+        }));
+
+  const usedNames = new Set<string>(["startPose"]);
+  const makeUniqueName = (base: string): string => {
+    let name = base;
+    let suffix = 1;
+    while (usedNames.has(name)) {
+      name = `${base}${++suffix}`;
+    }
+    usedNames.add(name);
+    return name;
+  };
+
+  const steps: FullStep[] = [];
+  let currentPoint: Point = startPoint;
+  let currentPoseName = "startPose";
+
+  seq.forEach((item, idx) => {
+    if (item.kind === "path") {
+      const line = lineById.get(item.lineId);
+      if (!line || !line.endPoint) return;
+      const endName = makeUniqueName(
+        sanitizeIdentifier(line.name, `point${idx + 1}`),
+      );
+      const chainName = `drive${capitalize(currentPoseName)}To${capitalize(endName)}`;
+      const stateName = `DRIVE_${toScreamingSnake(currentPoseName)}_${toScreamingSnake(endName)}`;
+      const endHeading = getLineEndHeading(line, currentPoint);
+      steps.push({
+        kind: "path",
+        line,
+        startName: currentPoseName,
+        endName,
+        chainName,
+        stateName,
+        endHeading,
+      });
+      currentPoint = line.endPoint;
+      currentPoseName = endName;
+    } else if (item.kind === "action") {
+      const baseName = sanitizeIdentifier(item.name, `action${idx + 1}`);
+      const stateName = makeUniqueName(`ACTION_${baseName}`);
+      steps.push({
+        kind: "action",
+        name: item.name || baseName,
+        code: item.code || "",
+        stateName,
+      });
+    } else if (item.kind === "wait") {
+      const baseName = sanitizeIdentifier(item.name, `wait${idx + 1}`);
+      const stateName = makeUniqueName(`WAIT_${baseName}`);
+      steps.push({
+        kind: "wait",
+        name: item.name || baseName,
+        durationSeconds: (Number(item.durationMs) || 0) / 1000,
+        stateName,
+      });
+    }
+  });
+
+  const firstPathStep = steps.find(
+    (s): s is Extract<FullStep, { kind: "path" }> => s.kind === "path",
+  );
+  const startHeading = firstPathStep
+    ? getLineStartHeading(firstPathStep.line, startPoint)
+    : startPoint.heading === "linear"
+      ? startPoint.startDeg
+      : startPoint.heading === "constant"
+        ? startPoint.degrees
+        : 0;
+
+  // Pose declarations (start point + each path end point)
+  const startPoseDecl = `private final Pose startPose = new Pose(${fmtNumber(startPoint.x)}, ${fmtNumber(startPoint.y)}, Math.toRadians(${fmtNumber(startHeading)}));`;
+
+  const pathSteps = steps.filter(
+    (s): s is Extract<FullStep, { kind: "path" }> => s.kind === "path",
+  );
+
+  const endPoseDecls = pathSteps.map(
+    (s) =>
+      `private final Pose ${s.endName} = new Pose(${fmtNumber(s.line.endPoint.x)}, ${fmtNumber(s.line.endPoint.y)}, Math.toRadians(${fmtNumber(s.endHeading)}));`,
+  );
+
+  // PathChain field declarations
+  const chainDecls = pathSteps.map((s) => `private PathChain ${s.chainName};`);
+
+  // buildPaths() body
+  const buildPathsBody = pathSteps.map((s) => {
+    const { line, startName, endName, chainName } = s;
+    const curveType =
+      line.controlPoints.length === 0 ? "BezierLine" : "BezierCurve";
+
+    const controlPointsStr = line.controlPoints
+      .map((p) => `new Pose(${fmtNumber(p.x)}, ${fmtNumber(p.y)})`)
+      .join(", ");
+
+    const addPathArgs =
+      line.controlPoints.length === 0
+        ? `${startName}, ${endName}`
+        : `${startName}, ${controlPointsStr}, ${endName}`;
+
+    let headingConfig: string;
+    if (line.endPoint.heading === "constant") {
+      headingConfig = `.setConstantHeadingInterpolation(Math.toRadians(${fmtNumber(line.endPoint.degrees ?? 0)}))`;
+    } else if (line.endPoint.heading === "linear") {
+      headingConfig = `.setLinearHeadingInterpolation(Math.toRadians(${fmtNumber(line.endPoint.startDeg ?? 0)}), Math.toRadians(${fmtNumber(line.endPoint.endDeg ?? 0)}))`;
+    } else {
+      headingConfig = `.setTangentHeadingInterpolation()`;
+    }
+
+    const reverseConfig = line.endPoint.reverse ? "\n                .setReversed()" : "";
+
+    return `${chainName} = follower.pathBuilder()
+                .addPath(new ${curveType}(${addPathArgs}))
+                ${headingConfig}${reverseConfig}
+                .build();`;
+  });
+
+  // State machine cases (in sequence order)
+  const stateCases = steps.map((s, idx) => {
+    const nextState =
+      idx < steps.length - 1 ? steps[idx + 1].stateName : "FINISHED";
+
+    if (s.kind === "path") {
+      const lineActions = (s.line.actions || []).filter(
+        (a) => a && typeof a.code === "string" && a.code.trim(),
+      );
+
+      let actionBlock = "";
+      if (lineActions.length > 0) {
+        const actionCode = lineActions
+          .map((a) =>
+            a.code
+              .split("\n")
+              .map((line) => "                    " + line)
+              .join("\n"),
+          )
+          .join("\n");
+        actionBlock = `\n                if (pathStarted && follower.isBusy()) {\n${actionCode}\n                }`;
+      }
+
+      return `case ${s.stateName}:
+                if (!follower.isBusy() && !pathStarted) {
+                    follower.followPath(${s.chainName}, true);
+                    pathStarted = true;
+                }${actionBlock}
+                if (pathStarted && !follower.isBusy()) {
+                    setPathState(PathState.${nextState});
+                }
+                break;`;
+    }
+
+    if (s.kind === "action") {
+      const codeLines = (s.code || "")
+        .split("\n")
+        .map((line) => "                " + line)
+        .join("\n");
+      return `case ${s.stateName}:
+${codeLines}
+                setPathState(PathState.${nextState});
+                break;`;
+    }
+
+    return `case ${s.stateName}:
+                if (pathTimer.getElapsedTimeSeconds() >= ${fmtNumber(s.durationSeconds)}) {
+                    setPathState(PathState.${nextState});
+                }
+                break;`;
+  });
+
+  const enumEntries = [...steps.map((s) => s.stateName), "FINISHED"].join(
+    ",\n        ",
+  );
+  const firstState = steps.length > 0 ? steps[0].stateName : "FINISHED";
+
+  return `package org.firstinspires.ftc.teamcode;
+
+import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.BezierCurve;
+import com.pedropathing.geometry.BezierLine;
+import com.pedropathing.geometry.Pose;
+import com.pedropathing.paths.PathChain;
+import com.pedropathing.util.Timer;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.bylazar.telemetry.TelemetryManager;
+import com.bylazar.telemetry.PanelsTelemetry;
+
+import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
+
+@Autonomous(name = "${safeClassName}", group = "Autonomous")
+public class ${safeClassName} extends OpMode {
+    TelemetryManager panelsTelemetry;
+    Follower follower;
+    Timer pathTimer;
+
+    public enum PathState {
+        ${enumEntries}
+    }
+
+    PathState pathState;
+    boolean pathStarted = false;
+
+    ${startPoseDecl}
+    ${endPoseDecls.join("\n    ")}
+
+    ${chainDecls.join("\n    ")}
+
+    public void buildPaths() {
+        ${buildPathsBody.join("\n\n        ")}
+    }
+
+    public void statePathUpdate() {
+        switch (pathState) {
+            ${stateCases.join("\n\n            ")}
+
+            case FINISHED:
+                // Path complete
+                break;
+
+            default:
+                panelsTelemetry.debug("Status", "No State Command");
+                break;
+        }
+    }
+
+    public void setPathState(PathState newState) {
+        pathState = newState;
+        pathStarted = false;
+        pathTimer.resetTimer();
+    }
+
+    @Override
+    public void init() {
+        panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
+
+        pathState = PathState.${firstState};
+        pathTimer = new Timer();
+        follower = Constants.createFollower(hardwareMap);
+
+        buildPaths();
+        follower.setStartingPose(startPose);
+
+        panelsTelemetry.debug("Status", "Initialized");
+        panelsTelemetry.update(telemetry);
+    }
+
+    @Override
+    public void loop() {
+        follower.update();
+        statePathUpdate();
+
+        panelsTelemetry.debug("Path State", pathState.toString());
+        panelsTelemetry.debug("X", follower.getPose().getX());
+        panelsTelemetry.debug("Y", follower.getPose().getY());
+        panelsTelemetry.debug("Heading", follower.getPose().getHeading());
+        panelsTelemetry.debug("Path Time", pathTimer.getElapsedTimeSeconds());
+        panelsTelemetry.update(telemetry);
+    }
+}
+`;
+}
+
 export async function generateJavaCode(
   startPoint: Point,
   lines: Line[],
   exportMode: "full" | "class" | "coordinates" = "class",
   pathChains: PathChain[] = [],
+  sequence: SequenceItem[] = [],
+  className: string = "PedroAutonomous",
 ): Promise<string> {
   const linesWithIds = lines.map((line, idx) => ({
     ...line,
@@ -144,62 +487,7 @@ export async function generateJavaCode(
   if (exportMode === "class") {
     file = pathsClass;
   } else {
-    file = `package org.firstinspires.ftc.teamcode;
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.bylazar.configurables.annotations.Configurable;
-import com.bylazar.telemetry.TelemetryManager;
-import com.bylazar.telemetry.PanelsTelemetry;
-import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
-import com.pedropathing.geometry.BezierCurve;
-import com.pedropathing.geometry.BezierLine;
-import com.pedropathing.follower.Follower;
-import com.pedropathing.paths.PathChain;
-import com.pedropathing.geometry.Pose;
-
-@Autonomous(name = "Pedro Pathing Autonomous", group = "Autonomous")
-@Configurable // Panels
-public class PedroAutonomous extends OpMode {
-  private TelemetryManager panelsTelemetry; // Panels Telemetry instance
-  public Follower follower; // Pedro Pathing follower instance
-  private int pathState; // Current autonomous path state (state machine)
-  private Paths paths; // Paths defined in the Paths class
-
-  @Override
-  public void init() {
-    panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
-
-    follower = Constants.createFollower(hardwareMap);
-    follower.setStartingPose(new Pose(72, 8, Math.toRadians(90)));
-
-    paths = new Paths(follower); // Build paths
-
-    panelsTelemetry.debug("Status", "Initialized");
-    panelsTelemetry.update(telemetry);
-  }
-
-  @Override
-  public void loop() {
-    follower.update(); // Update Pedro Pathing
-    pathState = autonomousPathUpdate(); // Update autonomous state machine
-
-    // Log values to Panels and Driver Station
-    panelsTelemetry.debug("Path State", pathState);
-    panelsTelemetry.debug("X", follower.getPose().getX());
-    panelsTelemetry.debug("Y", follower.getPose().getY());
-    panelsTelemetry.debug("Heading", follower.getPose().getHeading());
-    panelsTelemetry.update(telemetry);
-  }
-
-  ${pathsClass}
-
-  public int autonomousPathUpdate() {
-    // Add your state machine Here
-    // Access paths with paths.pathName
-    // Refer to the Pedro Pathing Docs (Auto Example) for an example state machine
-    return 0;
-  }
-}`;
+    file = generateFullAutonomous(startPoint, linesWithIds, sequence, className);
   }
 
   try {

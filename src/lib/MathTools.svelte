@@ -230,7 +230,7 @@
       class="cursor-move pointer-events-auto"
       role="button"
       tabindex="0"
-      aria-label="Ruler start point"
+      aria-label="자 시작점"
       on:mousedown={(e) => handleMouseDown(e, "ruler-start")}
     />
 
@@ -243,7 +243,7 @@
       class="cursor-move pointer-events-auto"
       role="button"
       tabindex="0"
-      aria-label="Ruler end point"
+      aria-label="자 끝점"
       on:mousedown={(e) => handleMouseDown(e, "ruler-end")}
     />
 
@@ -346,7 +346,7 @@
           class="cursor-grab pointer-events-auto"
           role="button"
           tabindex="0"
-          aria-label="Drag to rotate radius line"
+          aria-label="드래그하여 반지름 선 회전"
           on:mousedown={(e) => handleMouseDown(e, "protractor-rotate")}
         />
         <text
@@ -379,7 +379,7 @@
           class="cursor-nwse-resize pointer-events-auto"
           role="button"
           tabindex="0"
-          aria-label="Drag to resize protractor"
+          aria-label="드래그하여 각도기 크기 조절"
           on:mousedown={(e) => handleMouseDown(e, "protractor-resize")}
         />
         <text
@@ -406,8 +406,8 @@
         role="button"
         tabindex="0"
         aria-label={$protractorLockToRobot
-          ? "Click to unlock from robot"
-          : "Drag to move protractor"}
+          ? "로봇에서 잠금 해제하려면 클릭"
+          : "각도기를 이동하려면 드래그"}
         on:mousedown={(e) => {
           if ($protractorLockToRobot) {
             // Locked: center click does nothing; unlock via navbar toggle only
