@@ -25,9 +25,11 @@
   import { calculatePathTime, formatTime } from "../utils";
   import html2canvas from "html2canvas";
   import AndroidStudioExportDialog from "./components/AndroidStudioExportDialog.svelte";
+  import ShareUrlDialog from "./components/ShareUrlDialog.svelte";
   import {
     shouldSkipGuide,
   } from "../utils/androidStudioExporter";
+  import { buildShareUrl } from "../utils/urlExporter";
 
   export let loadFile: (evt: any) => any;
 
@@ -67,6 +69,8 @@
   let exportDialog: ExportCodeDialog;
   let androidStudioDialogOpen = false;
   let androidStudioDialog: AndroidStudioExportDialog;
+  let shareUrlDialogOpen = false;
+  let shareUrlDialog: ShareUrlDialog;
   let multiplePathsDialogOpen = false;
   // Hide sequential export UI by default; backend generator remains available
   const showSequentialExport = false;
@@ -140,6 +144,12 @@
     } else {
       androidStudioDialog.open();
     }
+  }
+
+  async function handleShareUrlExport() {
+    exportMenuOpen = false;
+    const url = await buildShareUrl(startPoint, lines, shapes, sequence, pathChains, settings);
+    shareUrlDialog.open(url);
   }
 
   async function exportFieldAsImage() {
@@ -316,6 +326,11 @@
   bind:lines
   bind:sequence
   bind:pathChains
+/>
+
+<ShareUrlDialog
+  bind:this={shareUrlDialog}
+  bind:isOpen={shareUrlDialogOpen}
 />
 
 <SettingsDialog bind:isOpen={settingsOpen} bind:settings />
@@ -880,6 +895,12 @@
               class="block w-full text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-200 transition-colors duration-250"
             >
               포인트 배열
+            </button>
+            <button
+              on:click={handleShareUrlExport}
+              class="block w-full text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors duration-250"
+            >
+              URL로 내보내기
             </button>
             {#if showSequentialExport}
               <button

@@ -61,6 +61,7 @@
     getDefaultShapes,
   } from "./config";
   import { loadSettings, saveSettings } from "./utils/settingsPersistence";
+  import { parseShareHash } from "./utils/urlExporter";
   import * as browserFileStore from "./utils/browserFileStore";
   import { onMount, onDestroy, tick } from "svelte";
   import { debounce } from "lodash";
@@ -1481,6 +1482,19 @@
     // Update robot dimensions from loaded settings
     robotWidth = settings.rWidth;
     robotHeight = settings.rHeight;
+
+    // Load shared state from URL hash if present (#data=...)
+    const shareData = await parseShareHash(window.location.hash);
+    if (shareData) {
+      loadData({
+        startPoint: shareData.startPoint,
+        lines: shareData.lines,
+        shapes: shareData.shapes,
+        sequence: shareData.sequence,
+        pathChains: shareData.pathChains,
+        settings: shareData.settings,
+      });
+    }
   });
   // Debounced save function
   const debouncedSaveSettings = debounce(async (settingsToSave: Settings) => {

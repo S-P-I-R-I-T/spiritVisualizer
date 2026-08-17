@@ -21,6 +21,7 @@ f54357e (4월4일) 커밋 기반으로 작성되었습니다. 추후 커밋이 �
 - Android Studio로 내보내기: 생성된 Java 코드를 열려 있는 Android Studio 프로젝트로 바로 전송
   - 플러그인은 웹에서 다운로드 가능 (`/spirit-android-studio-plugin-1.0.0.zip`)
   - localhost:8356로 코드 전송후 `TeamCode/src/main/java/org/firstinspires/ftc/teamcode/`에 파일 생성 
+- URL로 내보내기: 현재 경로의 모든 값(시작점, 경로, 장애물, 순서, 설정)을 압축 후 URL 해시로 인코딩해 공유
 
 ### 한국어 번역
 - 일부 변수를 제외한 웹사이트 내용을 한국어로 번역하였습니다.
