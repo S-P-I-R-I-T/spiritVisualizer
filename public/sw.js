@@ -1,19 +1,23 @@
-const VERSION = "v2";
+const VERSION = "v5";
 const CACHE_NAME = `pedro-visualizer-${VERSION}`;
 
 const APP_STATIC_RESOURCES = [
   "/",
   "/favicon.ico",
+  "/manifest.webmanifest",
+  "/icon-192.png",
+  "/icon-512.png",
+  "/maskable-512.png",
   "/fields/centerstage.webp",
   "/fields/intothedeep.webp",
   "/fields/decode.webp",
   "/robot.png",
   "/assets/index.js",
   "/assets/index.css",
-  "/fonts/Poppins-Regular.ttf",
-  "/fonts/Poppins-SemiBold.ttf",
-  "/fonts/Poppins-Light.ttf",
-  "/fonts/Poppins-ExtraLight.ttf",
+  "/fonts/Pretendard-Regular.ttf",
+  "/fonts/Pretendard-SemiBold.ttf",
+  "/fonts/Pretendard-Light.ttf",
+  "/fonts/Pretendard-ExtraLight.ttf",
 ];
 
 // On install, cache the static resources

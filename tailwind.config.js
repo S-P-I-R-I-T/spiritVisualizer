@@ -5,7 +5,7 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        poppins: ["Poppins", "ui-sans-serif", "system-ui", "sans-serif"],
+        pretendard: ["Pretendard", "ui-sans-serif", "system-ui", "sans-serif"],
       },
       scale: {
         98: "0.98",
