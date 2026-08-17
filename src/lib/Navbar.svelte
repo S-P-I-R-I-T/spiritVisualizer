@@ -24,6 +24,10 @@
   import MultiplePathsDialog from "./components/MultiplePathsDialog.svelte";
   import { calculatePathTime, formatTime } from "../utils";
   import html2canvas from "html2canvas";
+  import AndroidStudioExportDialog from "./components/AndroidStudioExportDialog.svelte";
+  import {
+    shouldSkipGuide,
+  } from "../utils/androidStudioExporter";
 
   export let loadFile: (evt: any) => any;
 
@@ -61,6 +65,8 @@
   let exportMenuOpen = false;
   let exportDialogOpen = false;
   let exportDialog: ExportCodeDialog;
+  let androidStudioDialogOpen = false;
+  let androidStudioDialog: AndroidStudioExportDialog;
   let multiplePathsDialogOpen = false;
   // Hide sequential export UI by default; backend generator remains available
   const showSequentialExport = false;
@@ -124,6 +130,16 @@
     exportMenuOpen = false;
     fileManagerOpen = false; // ensure file manager is closed before opening export dialog
     exportDialog.openWithFormat(format);
+  }
+
+  async function handleAndroidStudioExport() {
+    exportMenuOpen = false;
+    androidStudioDialogOpen = true;
+    if (shouldSkipGuide()) {
+      androidStudioDialog.openAtUpload();
+    } else {
+      androidStudioDialog.open();
+    }
   }
 
   async function exportFieldAsImage() {
@@ -287,6 +303,15 @@
 <ExportCodeDialog
   bind:this={exportDialog}
   bind:isOpen={exportDialogOpen}
+  bind:startPoint
+  bind:lines
+  bind:sequence
+  bind:pathChains
+/>
+
+<AndroidStudioExportDialog
+  bind:this={androidStudioDialog}
+  bind:isOpen={androidStudioDialogOpen}
   bind:startPoint
   bind:lines
   bind:sequence
@@ -842,7 +867,7 @@
 
         {#if exportMenuOpen}
           <div
-            class="absolute right-0 mt-2 w-48 bg-white dark:bg-neutral-800 rounded-md shadow-lg py-1 z-50 border border-neutral-200 dark:border-neutral-700"
+            class="absolute right-0 mt-2 w-56 bg-white dark:bg-neutral-800 rounded-md shadow-lg py-1 z-50 border border-neutral-200 dark:border-neutral-700"
           >
             <button
               on:click={() => handleExport("java")}
@@ -878,6 +903,29 @@
               class="block w-full text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors duration-250"
             >
               경로 애니메이션 GIF
+            </button>
+            <div
+              class="border-t border-neutral-200 dark:border-neutral-700 my-1"
+            ></div>
+            <button
+              on:click={handleAndroidStudioExport}
+              class="relative flex w-full items-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-[#fe55a2] to-purple-500 hover:from-[#ff6fb2] hover:to-purple-600 shadow-lg shadow-pink-500/30 transition-all duration-250"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke-width="2"
+                stroke="currentColor"
+                class="size-4"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5"
+                />
+              </svg>
+              Android Studio로 내보내기
             </button>
           </div>
         {/if}

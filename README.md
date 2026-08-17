@@ -17,7 +17,10 @@ f54357e (4월4일) 커밋 기반으로 작성되었습니다. 추후 커밋이 �
 - 액션(Action) 시스템: 경로 사이에 실행 코드를 삽입할 수 있는 액션 추가
   - 액션 행에서 Java 코드 직접 입력 (예: `action.Outtake_On(2);`)
   - 코드 스니펫 프리셋 + 스니펫 관리 모달 (localStorage에 저장됩니다)
-- 이동 중 액션(Moving Action): 경로에 붙여 follower가 해당 경로를 추종하는 동안 매 루프 실행되는 액션 
+- 이동 중 액션(Moving Action): 경로에 붙여 follower가 해당 경로를 추종하는 동안 매 루프 실행되는 액션
+- Android Studio로 내보내기: 생성된 Java 코드를 열려 있는 Android Studio 프로젝트로 바로 전송
+  - 플러그인은 웹에서 다운로드 가능 (`/spirit-android-studio-plugin-1.0.0.zip`)
+  - localhost:8356로 코드 전송후 `TeamCode/src/main/java/org/firstinspires/ftc/teamcode/`에 파일 생성 
 
 ### 한국어 번역
 - 일부 변수를 제외한 웹사이트 내용을 한국어로 번역하였습니다.
